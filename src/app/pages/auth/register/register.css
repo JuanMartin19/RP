@@ -1,48 +1,11 @@
-/* Fondo general */
-.min-h-screen {
-    background: linear-gradient(135deg, #f0f4f8, #e2e8f0);
-}
-
-/* Tarjeta */
-p-card {
-    border-radius: 16px !important;
-}
-
-/* Contenedor del formulario */
-form {
-    padding: 1.5rem;
-}
-
-/* Inputs */
-.p-inputtext,
-.p-password input {
+:host {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100%;
     width: 100%;
-    border-radius: 10px;
-    padding: 0.6rem;
-    font-size: 14px;
 }
 
-/* Efecto focus bonito */
-.p-inputtext:focus,
-.p-password input:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 4px rgba(59, 130, 246, 0.4);
-}
-
-/* Labels */
-.p-float-label label {
-    font-size: 13px;
-}
-
-/* Botones */
-button[pButton] {
-    border-radius: 10px;
-    padding: 0.6rem;
-    font-weight: 600;
-}
-
-/* Links */
-a {
-    font-size: 14px;
-    font-weight: 500;
+.min-h-screen {
+    min-height: 100% !important;
 }

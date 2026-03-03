@@ -1,0 +1,89 @@
+.sidebar-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    background: #020617;
+    color: #e2e8f0;
+    padding: 1rem 0.5rem;
+}
+
+/* Logo */
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.3rem;
+    font-weight: bold;
+    padding: 1rem;
+    color: #38bdf8;
+}
+
+.logo i {
+    font-size: 1.5rem;
+}
+
+/* Menú */
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+/* Links */
+.menu a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0.7rem 1rem;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #cbd5f5;
+    transition: 0.2s;
+}
+
+/* Hover */
+.menu a:hover {
+    background: #1e293b;
+    color: #38bdf8;
+}
+
+/* Activo */
+.menu a.active {
+    background: #0ea5e9;
+    color: white;
+}
+
+/* Iconos */
+.menu i {
+    font-size: 1.2rem;
+}
+
+/* Footer */
+.footer {
+    margin-top: auto;
+    padding: 1rem;
+}
+
+.footer a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #f87171;
+    text-decoration: none;
+    padding: 0.7rem;
+    border-radius: 10px;
+}
+
+.footer a:hover {
+    background: #7f1d1d;
+    color: #fecaca;
+}
+
+.version {
+    margin-top: 20px;
+    padding-left: 1rem;
+    font-size: 0.75rem;
+    color: #64748b;
+}
