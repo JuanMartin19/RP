@@ -1,52 +1,51 @@
-<div class="home-container">
+<div class="min-h-screen bg-surface-950 text-surface-0 p-5">
 
-  <div class="welcome">
-    <h1>Bienvenido</h1>
-    <p>Panel principal del sistema</p>
+  <div class="text-center mb-5">
+    <h1 class="text-3xl font-bold">Bienvenido</h1>
+    <p class="text-surface-400">Panel principal del sistema</p>
   </div>
 
-  <div class="grid">
+  <div class="flex flex-wrap justify-content-center gap-3 w-full">
 
-    <!-- Card 1 -->
-    <p-card class="home-card">
-      <div class="card-content">
-        <i class="pi pi-users card-icon"></i>
-        <h3>Usuarios</h3>
-        <p>Gestiona los usuarios del sistema</p>
-        <button pButton label="Ir" icon="pi pi-arrow-right" class="w-full"></button>
-      </div>
-    </p-card>
+    <div class="w-12rem">
+      <p-card styleClass="surface-card shadow-2 h-full">
+        <div class="flex flex-column align-items-center gap-2 text-center p-2">
+          <i class="pi pi-users text-3xl text-primary"></i>
+          <h3 class="text-lg m-0">Usuarios</h3>
+          <p-button label="Ir" icon="pi pi-arrow-right" styleClass="w-full p-button-sm" />
+        </div>
+      </p-card>
+    </div>
 
-    <!-- Card 2 -->
-    <p-card class="home-card">
-      <div class="card-content">
-        <i class="pi pi-shopping-cart card-icon"></i>
-        <h3>Productos</h3>
-        <p>Administra productos y stock</p>
-        <button pButton label="Ir" icon="pi pi-arrow-right" class="w-full p-button-success"></button>
-      </div>
-    </p-card>
+    <div class="w-12rem">
+      <p-card styleClass="surface-card shadow-2 h-full">
+        <div class="flex flex-column align-items-center gap-2 text-center p-2">
+          <i class="pi pi-shopping-cart text-3xl text-green-500"></i>
+          <h3 class="text-lg m-0">Productos</h3>
+          <p-button label="Ir" icon="pi pi-arrow-right" styleClass="w-full p-button-sm p-button-success" />
+        </div>
+      </p-card>
+    </div>
 
-    <!-- Card 3 -->
-    <p-card class="home-card">
-      <div class="card-content">
-        <i class="pi pi-chart-line card-icon"></i>
-        <h3>Reportes</h3>
-        <p>Visualiza estadísticas y ventas</p>
-        <button pButton label="Ver" icon="pi pi-arrow-right" class="w-full p-button-warning"></button>
-      </div>
-    </p-card>
+    <div class="w-12rem">
+      <p-card styleClass="surface-card shadow-2 h-full">
+        <div class="flex flex-column align-items-center gap-2 text-center p-2">
+          <i class="pi pi-chart-line text-3xl text-orange-500"></i>
+          <h3 class="text-lg m-0">Reportes</h3>
+          <p-button label="Ver" icon="pi pi-arrow-right" styleClass="w-full p-button-sm p-button-warning" />
+        </div>
+      </p-card>
+    </div>
 
-    <!-- Card 4 -->
-    <p-card class="home-card">
-      <div class="card-content">
-        <i class="pi pi-cog card-icon"></i>
-        <h3>Configuración</h3>
-        <p>Ajustes del sistema</p>
-        <button pButton label="Configurar" icon="pi pi-arrow-right" class="w-full p-button-secondary"></button>
-      </div>
-    </p-card>
+    <div class="w-12rem">
+      <p-card styleClass="surface-card shadow-2 h-full">
+        <div class="flex flex-column align-items-center gap-2 text-center p-2">
+          <i class="pi pi-cog text-3xl text-surface-400"></i>
+          <h3 class="text-lg m-0">Configuración</h3>
+          <p-button label="Ajustes" icon="pi pi-arrow-right" styleClass="w-full p-button-sm p-button-secondary" />
+        </div>
+      </p-card>
+    </div>
 
   </div>
-
 </div>
