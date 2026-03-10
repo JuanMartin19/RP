@@ -1,30 +1,138 @@
-<div class="flex flex-column align-items-center justify-content-center min-h-screen gap-4 p-4">
+<div class="p-5 flex flex-column gap-4">
 
-    <div class="flex flex-column gap-4 w-full" style="max-width: 35rem;">
-        
-        <p-card styleClass="shadow-2 w-full">
-            <div class="text-center">
-                <h2 class="text-4xl font-bold m-0" style="color: #38bdf8;">N</h2>
-                <p class="text-secondary m-0">Total de Usuarios</p>
-            </div>
-        </p-card>
-
-        <p-card styleClass="w-full">
-            <ng-template #title> Advanced Card </ng-template>
-            <ng-template #subtitle> Card subtitle </ng-template>
-            <p>
-                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Inventore sed consequuntur error repudiandae
-                numquam deserunt quisquam repellat libero asperiores earum nam nobis, culpa ratione quam perferendis esse,
-                cupiditate neque
-                quas!
-            </p>
-            <ng-template #footer>
-                <div class="flex gap-4 mt-1">
-                    <p-button label="Cancel" severity="secondary" class="w-full" [outlined]="true" />
-                    <p-button label="Save" class="w-full" />
+    <p-card>
+        <div class="flex justify-content-between align-items-center">
+            <div>
+                <span class="text-500">Total de Usuarios</span>
+                <div class="text-4xl font-bold text-primary">
+                    {{ groups.length }}
                 </div>
+            </div>
+            <i class="pi pi-users text-4xl text-primary"></i>
+        </div>
+    </p-card>
+
+    <br>
+
+    <p-card>
+
+        <div class="flex justify-content-between align-items-center mb-3">
+            <h2 class="m-0">Gestión de Grupos</h2>
+            <p-button 
+                label="Nuevo Grupo" 
+                icon="pi pi-plus" 
+                (click)="openNew()" />
+        </div>
+
+        <p-table 
+            [value]="groups" 
+            responsiveLayout="scroll"
+            [paginator]="true"
+            [rows]="5">
+
+            <ng-template pTemplate="header">
+                <tr>
+                    <th>Nombre</th>
+                    <th>Nivel</th>
+                    <th>Autor</th>
+                    <th>Integrantes</th>
+                    <th>Tickets</th>
+                    <th style="width: 120px">Acciones</th>
+                </tr>
             </ng-template>
-        </p-card>
-        
-    </div>
+
+            <ng-template pTemplate="body" let-group>
+                <tr>
+                    <td>{{ group.nombre }}</td>
+                    <td>{{ group.nivel }}</td>
+                    <td>{{ group.autor }}</td>
+                    <td>{{ group.integrantes }}</td>
+                    <td>{{ group.tickets }}</td>
+                    <td>
+                        <div class="flex gap-2">
+                            <p-button 
+                                icon="pi pi-pencil" 
+                                [text]="true"
+                                (click)="editGroup(group)" />
+
+                            <p-button 
+                                icon="pi pi-trash" 
+                                severity="danger"
+                                [text]="true"
+                                (click)="deleteGroup(group.id!)" />
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="6" class="text-center">
+                        No hay grupos registrados
+                    </td>
+                </tr>
+            </ng-template>
+
+        </p-table>
+
+    </p-card>
+
+    <p-dialog 
+        [(visible)]="groupDialog"
+        [header]="editingId ? 'Editar Grupo' : 'Nuevo Grupo'"
+        [modal]="true"
+        [style]="{ width: '30rem' }"
+        [draggable]="false"
+        [resizable]="false">
+
+        <form 
+            [formGroup]="groupForm"
+            class="p-fluid flex flex-column gap-3">
+
+            <input 
+                pInputText 
+                formControlName="nombre"
+                placeholder="Nombre del grupo" />
+
+            <input 
+                pInputText 
+                formControlName="nivel"
+                placeholder="Nivel" />
+
+            <input 
+                pInputText 
+                formControlName="autor"
+                placeholder="Autor" />
+
+            <p-inputNumber 
+                formControlName="integrantes"
+                placeholder="Integrantes" />
+
+            <p-inputNumber 
+                formControlName="tickets"
+                placeholder="Tickets" />
+
+            <textarea 
+                pInputTextarea 
+                formControlName="descripcion"
+                rows="3"
+                placeholder="Descripción">
+            </textarea>
+
+            <div class="flex justify-content-end gap-2 mt-2">
+                <p-button 
+                    label="Cancelar"
+                    severity="secondary"
+                    [outlined]="true"
+                    (click)="groupDialog=false" />
+
+                <p-button 
+                    label="Guardar"
+                    icon="pi pi-save"
+                    (click)="saveGroup()" />
+            </div>
+
+        </form>
+    </p-dialog>
+
 </div>

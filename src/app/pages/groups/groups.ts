@@ -1,13 +1,67 @@
 import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { PrimeImportsModule } from "../../prime-imports";
+
+interface Group {
+  id?: number;
+  nombre: string;
+  nivel: string;
+  autor: string;
+  integrantes: number;
+  tickets: number;
+  descripcion: string;
+}
 
 @Component({
   selector: 'app-groups',
-  imports: [RouterLink, PrimeImportsModule],
+  standalone: true,
+  imports: [ReactiveFormsModule, PrimeImportsModule],
   templateUrl: './groups.html',
   styleUrl: './groups.css',
 })
 export class Groups {
+  groupDialog: boolean = false;
+  groups: Group[] = [];
+  groupForm: FormGroup;
+  editingId: number | null = null;
 
+  constructor() {
+    this.groupForm = new FormGroup({
+      nombre: new FormControl('', Validators.required),
+      nivel: new FormControl('', Validators.required),
+      autor: new FormControl(''),
+      integrantes: new FormControl(0),
+      tickets: new FormControl(0),
+      descripcion: new FormControl('')
+    });
+  }
+
+  openNew() {
+    this.groupForm.reset();
+    this.editingId = null;
+    this.groupDialog = true;
+  }
+
+  editGroup(group: Group) {
+    this.groupForm.patchValue(group);
+    this.editingId = group.id!;
+    this.groupDialog = true;
+  }
+
+  deleteGroup(id: number) {
+    this.groups = this.groups.filter(g => g.id !== id);
+  }
+
+  saveGroup() {
+    if (this.groupForm.valid) {
+      const data = this.groupForm.value as Group;
+
+      if (this.editingId) {
+        this.groups = this.groups.map(g => g.id === this.editingId ? { ...data, id: this.editingId } : g);
+      } else {
+        this.groups = [...this.groups, { ...data, id: Date.now() }];
+      }
+      this.groupDialog = false;
+    }
+  }
 }

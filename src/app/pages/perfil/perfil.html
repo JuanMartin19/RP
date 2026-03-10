@@ -1,42 +1,66 @@
-<div class="flex justify-content-center p-4">
-    <p-card styleClass="w-full max-w-28rem surface-card shadow-4 border-round-xl p-4">
-        
-        <div class="mb-5">
-            <h1 class="text-2xl font-bold m-0 text-surface-0">Mis datos</h1>
-            <p class="text-surface-400 m-0 mt-1 text-sm">Ingresa tu información personal</p>
-        </div>
+<div class="flex justify-content-center align-items-center w-full min-h-screen p-4">
 
-        <form [formGroup]="perfilForm" class="p-fluid flex flex-column gap-4">
-            
+    <p-card styleClass="w-full max-w-30rem p-5 shadow-5">
+
+        <ng-template pTemplate="header">
+            <div class="px-5 pt-5 pb-0">
+                <h2 class="text-3xl font-bold m-0 text-surface-0">Editar Perfil</h2>
+            </div>
+        </ng-template>
+
+        <form [formGroup]="perfilForm" class="flex flex-column gap-5 pt-4">
+
             <p-floatLabel variant="on">
-                <input pInputText id="usuario" class="w-full" formControlName="usuario" />
-                <label for="usuario">Usuario</label>
+                <input pInputText class="w-full" formControlName="usuario" />
+                <label>Usuario</label>
             </p-floatLabel>
 
             <p-floatLabel variant="on">
-                <input pInputText id="email" class="w-full" formControlName="email" />
-                <label for="email">Correo</label>
+                <input pInputText class="w-full" formControlName="email" />
+                <label>Correo</label>
             </p-floatLabel>
 
             <p-floatLabel variant="on">
-                <p-password id="password" [toggleMask]="true" [feedback]="false" 
-                            formControlName="password" styleClass="w-full" inputStyleClass="w-full">
-                </p-password>
-                <label for="password">Password</label>
+                <input pInputText class="w-full" formControlName="nombre" />
+                <label>Nombre completo</label>
             </p-floatLabel>
 
             <p-floatLabel variant="on">
-                <p-password id="confirmPassword" [toggleMask]="true" [feedback]="false" 
-                            formControlName="confirmPassword" styleClass="w-full" inputStyleClass="w-full">
-                </p-password>
-                <label for="confirmPassword">Confirmar</label>
+                <input pInputText class="w-full" formControlName="direccion" />
+                <label>Dirección</label>
             </p-floatLabel>
 
-            <div class="mt-4">
-                <p-button label="Guardar cambios" icon="pi pi-save" severity="success" 
-                          styleClass="w-full" (click)="registrar()" />
+            <p-floatLabel variant="on">
+                <input pInputText class="w-full" maxlength="10" formControlName="telefono"
+                    (input)="limitarTelefono($event)" />
+                <label>Teléfono</label>
+            </p-floatLabel>
+
+            <div class="flex flex-column gap-2">
+                <label class="text-sm text-surface-400">Fecha de nacimiento</label>
+                <p-datepicker styleClass="w-full" [showIcon]="true" formControlName="nacimiento" />
             </div>
 
+            <div class="border-top-1 surface-border my-2"></div>
+
+            <p-floatLabel variant="on">
+                <p-password styleClass="w-full" inputStyleClass="w-full" [toggleMask]="true" [feedback]="false"
+                    formControlName="password">
+                </p-password>
+                <label>Nueva contraseña</label>
+            </p-floatLabel>
+
+            <p-floatLabel variant="on">
+                <p-password styleClass="w-full" inputStyleClass="w-full" [toggleMask]="true" [feedback]="false"
+                    formControlName="confirmPassword">
+                </p-password>
+                <label>Confirmar contraseña</label>
+            </p-floatLabel>
+
+            <div class="flex flex-column gap-2 mt-3">
+                <p-button label="Guardar cambios" icon="pi pi-save" severity="success" class="w-full"
+                    (click)="guardarCambios()" />
+            </div>
             <p-message *ngIf="mensaje" [severity]="tipoMensaje || 'info'" [text]="mensaje" />
         </form>
     </p-card>

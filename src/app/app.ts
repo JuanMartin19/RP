@@ -10,6 +10,6 @@ import { PrimeImportsModule } from './prime-imports';
   styleUrl: './app.css'
 })
 
-export class App {
+export class App {  
   protected readonly title = signal('RP');
 }
