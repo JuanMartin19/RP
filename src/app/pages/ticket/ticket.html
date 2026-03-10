@@ -1,0 +1,111 @@
+<div class="p-4">
+
+  <div class="flex justify-content-between align-items-center mb-3">
+    <h2>Tickets</h2>
+
+    <p-button 
+      *ngIf="canAdd"
+      label="Nuevo Ticket"
+      icon="pi pi-plus"
+      (click)="openNew()">
+    </p-button>
+
+  </div>
+
+  <p-table 
+    *ngIf="canView"
+    [value]="tickets"
+    [tableStyle]="{'min-width': '60rem'}">
+
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Título</th>
+        <th>Estado</th>
+        <th>Prioridad</th>
+        <th>Autor</th>
+        <th>Acciones</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-ticket>
+      <tr>
+        <td>{{ticket.titulo}}</td>
+        <td>{{ticket.estado}}</td>
+        <td>{{ticket.prioridad}}</td>
+        <td>{{ticket.autor}}</td>
+
+        <td class="flex gap-2">
+
+          <p-button
+            *ngIf="canEdit"
+            icon="pi pi-pencil"
+            [text]="true"
+            (click)="editTicket(ticket)">
+          </p-button>
+
+          <p-button
+            *ngIf="canDelete"
+            icon="pi pi-trash"
+            severity="danger"
+            [text]="true"
+            (click)="deleteTicket(ticket.id!)">
+          </p-button>
+
+        </td>
+      </tr>
+    </ng-template>
+
+  </p-table>
+
+</div>
+
+
+<p-dialog 
+  [(visible)]="ticketDialog"
+  header="Ticket"
+  [modal]="true"
+  [style]="{width: '400px'}">
+
+  <form [formGroup]="ticketForm" class="flex flex-column gap-3">
+
+    <input pInputText placeholder="Título" formControlName="titulo">
+
+    <p-select 
+        [options]="['Abierto','En progreso','Cerrado']"
+        formControlName="estado"
+        placeholder="Estado">
+    </p-select>
+
+    <p-select 
+        [options]="['Alta','Media','Baja']"
+        formControlName="prioridad"
+        placeholder="Prioridad">
+    </p-select>
+
+    <input pInputText placeholder="Autor" formControlName="autor">
+
+    <textarea 
+      pInputTextarea
+      rows="3"
+      placeholder="Descripción"
+      formControlName="descripcion">
+    </textarea>
+
+  </form>
+
+  <ng-template pTemplate="footer">
+
+    <p-button 
+      label="Cancelar"
+      severity="secondary"
+      (click)="ticketDialog=false">
+    </p-button>
+
+    <p-button 
+      label="Guardar"
+      (click)="saveTicket()">
+    </p-button>
+
+  </ng-template>
+
+</p-dialog>

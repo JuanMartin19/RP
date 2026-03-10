@@ -1,0 +1,119 @@
+<p-card header="Gestión de Usuarios">
+
+    <p-toolbar class="mb-3">
+
+        <ng-template pTemplate="left">
+            <button
+                *ngIf="canAddUsers"
+                pButton
+                label="Nuevo Usuario"
+                icon="pi pi-plus"
+                (click)="abrirNuevo()">
+            </button>
+        </ng-template>
+
+    </p-toolbar>
+
+
+    <p-table 
+        [value]="usuarios"
+        [paginator]="true"
+        [rows]="5"
+        responsiveLayout="scroll">
+
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Estado</th>
+                <th style="width:150px">Acciones</th>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-usuario>
+            <tr>
+
+                <td>{{usuario.nombre}}</td>
+
+                <td>{{usuario.email}}</td>
+
+                <td>
+                    <p-tag 
+                        [value]="usuario.estado"
+                        [severity]="usuario.estado === 'Activo' ? 'success' : 'danger'">
+                    </p-tag>
+                </td>
+
+                <td class="flex gap-2">
+
+                    <button
+                        *ngIf="canEditUsers"
+                        pButton
+                        icon="pi pi-pencil"
+                        severity="info"
+                        (click)="editarUsuario(usuario)">
+                    </button>
+
+                    <button
+                        *ngIf="canDeleteUsers"
+                        pButton
+                        icon="pi pi-trash"
+                        severity="danger"
+                        (click)="eliminarUsuario(usuario)">
+                    </button>
+
+                </td>
+
+            </tr>
+        </ng-template>
+
+    </p-table>
+
+</p-card>
+
+
+<p-dialog 
+    header="Usuario"
+    [(visible)]="visible"
+    [modal]="true"
+    [style]="{width:'400px'}">
+
+    <form [formGroup]="usuarioForm" class="flex flex-column gap-3">
+
+        <input 
+            pInputText 
+            placeholder="Nombre"
+            formControlName="nombre">
+
+        <input 
+            pInputText 
+            placeholder="Email"
+            formControlName="email">
+
+        <p-select
+            [options]="['Activo','Inactivo']"
+            formControlName="estado"
+            placeholder="Estado">
+        </p-select>
+
+    </form>
+
+
+    <ng-template pTemplate="footer">
+
+        <button 
+            pButton 
+            label="Cancelar"
+            severity="secondary"
+            (click)="visible=false">
+        </button>
+
+        <button 
+            pButton 
+            label="Guardar"
+            (click)="guardarUsuario()">
+        </button>
+
+    </ng-template>
+
+</p-dialog>

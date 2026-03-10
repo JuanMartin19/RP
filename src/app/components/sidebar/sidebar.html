@@ -6,31 +6,58 @@
     </div>
 
     <nav class="menu">
+
         <a routerLink="/home" routerLinkActive="active">
             <i class="pi pi-home"></i>
             <span>Inicio</span>
         </a>
+
         <a routerLink="/perfil" routerLinkActive="active">
             <i class="pi pi-user"></i>
             <span>Perfil</span>
         </a>
-        <a routerLink="/groups" routerLinkActive="active">
+
+        <a *ngIf="canViewGroups"
+           routerLink="/groups"
+           routerLinkActive="active">
             <i class="pi pi-users"></i>
             <span>Groups</span>
         </a>
-        <a routerLink="/settings" routerLinkActive="active">
+
+        <a *ngIf="canViewUsers"
+           routerLink="/usuarios"
+           routerLinkActive="active">
+            <i class="pi pi-user-edit"></i>
+            <span>Usuarios</span>
+        </a>
+
+        <a *ngIf="canViewTickets"
+           routerLink="/ticket"
+           routerLinkActive="active">
+            <i class="pi pi-ticket"></i>
+            <span>Tickets</span>
+        </a>
+
+        <a *ngIf="canViewSettings"
+           routerLink="/settings"
+           routerLinkActive="active">
             <i class="pi pi-cog"></i>
             <span>Configuración</span>
         </a>
+
     </nav>
 
     <div class="footer">
+
         <a routerLink="/login">
             <i class="pi pi-sign-out"></i>
             <span>Cerrar sesión</span>
         </a>
+
         <div class="version">
-            <small>Alpha v0.4.0</small>
+            <small>Alpha v0.7.0</small>
         </div>
+
     </div>
+
 </div>

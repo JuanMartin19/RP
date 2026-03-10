@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { PrimeImportsModule } from "../../prime-imports";
+import { PermissionsService } from '../../services/permissions.service';
 
 interface Group {
   id?: number;
@@ -20,12 +21,19 @@ interface Group {
   styleUrl: './groups.css',
 })
 export class Groups {
+
   groupDialog: boolean = false;
   groups: Group[] = [];
   groupForm: FormGroup;
   editingId: number | null = null;
 
-  constructor() {
+  // permisos
+  canAdd = false;
+  canEdit = false;
+  canDelete = false;
+
+  constructor(private permsSvc: PermissionsService) {
+
     this.groupForm = new FormGroup({
       nombre: new FormControl('', Validators.required),
       nivel: new FormControl('', Validators.required),
@@ -34,6 +42,11 @@ export class Groups {
       tickets: new FormControl(0),
       descripcion: new FormControl('')
     });
+
+    // revisar permisos
+    this.canAdd = this.permsSvc.hasPermission('groups:add');
+    this.canEdit = this.permsSvc.hasPermission('groups:edit');
+    this.canDelete = this.permsSvc.hasPermission('groups:delete');
   }
 
   openNew() {
@@ -54,14 +67,23 @@ export class Groups {
 
   saveGroup() {
     if (this.groupForm.valid) {
+
       const data = this.groupForm.value as Group;
 
       if (this.editingId) {
-        this.groups = this.groups.map(g => g.id === this.editingId ? { ...data, id: this.editingId } : g);
+
+        this.groups = this.groups.map(g =>
+          g.id === this.editingId ? { ...data, id: this.editingId } : g
+        );
+
       } else {
+
         this.groups = [...this.groups, { ...data, id: Date.now() }];
+
       }
+
       this.groupDialog = false;
+
     }
   }
 }

@@ -1,44 +1,69 @@
 import { Routes } from '@angular/router';
-import { Login } from './pages/auth/login/login';
-import { Register } from './pages/auth/register/register';
-import { Landing } from './pages/landing/landing';
-import { Home } from './pages/home/home';
-import { MainLayout } from './layouts/main-layout/main-layout';
-import { Groups } from './pages/groups/groups';
-import { Perfil } from './pages/perfil/perfil';
 
 export const routes: Routes = [
 
   {
     path: '',
-    component: Landing
+    redirectTo: 'login',
+    pathMatch: 'full'
   },
 
   {
     path: 'login',
-    component: Login
+    loadComponent: () =>
+      import('./pages/auth/login/login').then(m => m.Login)
   },
+
   {
     path: 'register',
-    component: Register
+    loadComponent: () =>
+      import('./pages/auth/register/register').then(m => m.Register)
+  },
+
+  {
+    path: 'landing',
+    loadComponent: () =>
+      import('./pages/landing/landing').then(m => m.Landing)
   },
 
   {
     path: '',
-    component: MainLayout,
+    loadComponent: () =>
+      import('./layouts/main-layout/main-layout').then(m => m.MainLayout),
+
     children: [
+
       {
         path: 'home',
-        component: Home
+        loadComponent: () =>
+          import('./pages/home/home').then(m => m.Home)
       },
+
       {
         path: 'groups',
-        component: Groups
+        loadComponent: () =>
+          import('./pages/groups/groups').then(m => m.Groups)
       },
+
       {
         path: 'perfil',
-        component: Perfil
+        loadComponent: () =>
+          import('./pages/perfil/perfil').then(m => m.Perfil)
+      },
+
+      {
+        path: 'usuarios',
+        loadComponent: () =>
+          import('./pages/usuarios/usuarios').then(m => m.Usuarios)
+      },
+
+      {
+        path: 'ticket',
+        loadComponent: () =>
+          import('./pages/ticket/ticket').then(m => m.Ticket)
       }
+
     ]
-  },
+  }
+
 ];
