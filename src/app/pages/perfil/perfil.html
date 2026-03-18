@@ -1,67 +1,105 @@
-<div class="flex justify-content-center align-items-center w-full min-h-screen p-4">
+<div class="perfil-layout">
 
-    <p-card styleClass="w-full max-w-30rem p-5 shadow-5">
+  <div class="perfil-form-container">
+    
+    <div class="perfil-header">
+      <h2>Mis datos</h2>
+      <p>Gestiona tu información personal</p>
+    </div>
 
+    <form [formGroup]="perfilForm" class="form-content">
+
+      <div class="input-group">
+        <span class="icon"><i class="pi pi-user"></i></span>
+        <input pInputText formControlName="usuario" placeholder="Usuario" />
+      </div>
+
+      <div class="input-group">
+        <span class="icon"><i class="pi pi-envelope"></i></span>
+        <input pInputText formControlName="email" placeholder="Correo" />
+      </div>
+
+      <div class="input-group">
+        <span class="icon"><i class="pi pi-lock"></i></span>
+        <p-password formControlName="password" [toggleMask]="true" [feedback]="false" placeholder="Password"></p-password>
+      </div>
+
+      <div class="input-group">
+        <span class="icon"><i class="pi pi-lock"></i></span>
+        <p-password formControlName="confirmPassword" [toggleMask]="true" [feedback]="false" placeholder="Confirmar contraseña"></p-password>
+      </div>
+
+      <div class="input-group">
+        <span class="icon"><i class="pi pi-user"></i></span>
+        <input pInputText formControlName="nombre" placeholder="Nombre" />
+      </div>
+
+      <div class="input-group">
+        <span class="icon"><i class="pi pi-map-marker"></i></span>
+        <input pInputText formControlName="direccion" placeholder="Dirección" />
+      </div>
+
+      <div class="input-group">
+        <span class="icon"><i class="pi pi-phone"></i></span>
+        <input pInputText formControlName="telefono" maxlength="10" (input)="limitarTelefono($event)" placeholder="Teléfono" />
+      </div>
+
+      <div class="extra-fields">
+        <div class="birth-date">
+          <label>Fecha de nacimiento</label>
+          <p-datepicker formControlName="nacimiento" [showIcon]="true" appendTo="body"></p-datepicker>
+        </div>
+      </div>
+
+      <div class="actions mt-4">
+        <button pButton label="Guardar cambios" icon="pi pi-save" severity="success" class="w-full" (click)="guardarCambios()"></button>
+        <p-message *ngIf="mensaje" [severity]="tipoMensaje || 'info'" [text]="mensaje" class="mt-2 block w-full"></p-message>
+      </div>
+
+    </form>
+  </div>
+
+
+  <div class="perfil-dashboard">
+    
+    <div class="stats-row">
+      <div class="stat-card" *ngFor="let stat of stats" [ngClass]="stat.class">
+        <span class="stat-title">{{ stat.titulo }}</span>
+        <span class="stat-value">{{ stat.valor }}</span>
+      </div>
+    </div>
+
+    <div class="tickets-table-container">
+      <div class="table-header-title">
+        <i class="pi pi-list"></i> Mis Tickets Asignados
+      </div>
+      
+      <p-table [value]="misTickets" styleClass="custom-table dark-table">
         <ng-template pTemplate="header">
-            <div class="px-5 pt-5 pb-0">
-                <h2 class="text-3xl font-bold m-0 text-surface-0">Editar Perfil</h2>
-            </div>
+          <tr>
+            <th>ID</th>
+            <th>Titulo</th>
+            <th>Prioridad</th>
+            <th>Estado</th>
+          </tr>
         </ng-template>
+        <ng-template pTemplate="body" let-ticket>
+          <tr>
+            <td class="text-blue">{{ ticket.id }}</td>
+            <td>{{ ticket.titulo }}</td>
+            <td>
+              <span class="ticket-prio" [ngClass]="getPrioridadClass(ticket.prioridad)">
+                {{ ticket.prioridad }}
+              </span>
+            </td>
+            <td>
+              <p-tag [value]="ticket.estado" [severity]="getEstadoSeverity(ticket.estado)"></p-tag>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
 
-        <form [formGroup]="perfilForm" class="flex flex-column gap-5 pt-4">
+  </div>
 
-            <p-floatLabel variant="on">
-                <input pInputText class="w-full" formControlName="usuario" />
-                <label>Usuario</label>
-            </p-floatLabel>
-
-            <p-floatLabel variant="on">
-                <input pInputText class="w-full" formControlName="email" />
-                <label>Correo</label>
-            </p-floatLabel>
-
-            <p-floatLabel variant="on">
-                <input pInputText class="w-full" formControlName="nombre" />
-                <label>Nombre completo</label>
-            </p-floatLabel>
-
-            <p-floatLabel variant="on">
-                <input pInputText class="w-full" formControlName="direccion" />
-                <label>Dirección</label>
-            </p-floatLabel>
-
-            <p-floatLabel variant="on">
-                <input pInputText class="w-full" maxlength="10" formControlName="telefono"
-                    (input)="limitarTelefono($event)" />
-                <label>Teléfono</label>
-            </p-floatLabel>
-
-            <div class="flex flex-column gap-2">
-                <label class="text-sm text-surface-400">Fecha de nacimiento</label>
-                <p-datepicker styleClass="w-full" [showIcon]="true" formControlName="nacimiento" />
-            </div>
-
-            <div class="border-top-1 surface-border my-2"></div>
-
-            <p-floatLabel variant="on">
-                <p-password styleClass="w-full" inputStyleClass="w-full" [toggleMask]="true" [feedback]="false"
-                    formControlName="password">
-                </p-password>
-                <label>Nueva contraseña</label>
-            </p-floatLabel>
-
-            <p-floatLabel variant="on">
-                <p-password styleClass="w-full" inputStyleClass="w-full" [toggleMask]="true" [feedback]="false"
-                    formControlName="confirmPassword">
-                </p-password>
-                <label>Confirmar contraseña</label>
-            </p-floatLabel>
-
-            <div class="flex flex-column gap-2 mt-3">
-                <p-button label="Guardar cambios" icon="pi pi-save" severity="success" class="w-full"
-                    (click)="guardarCambios()" />
-            </div>
-            <p-message *ngIf="mensaje" [severity]="tipoMensaje || 'info'" [text]="mensaje" />
-        </form>
-    </p-card>
 </div>

@@ -5,11 +5,16 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { providePrimeNG } from 'primeng/config';
 import Lara from '@primeuix/themes/lara';
 
+import { HasPermissionDirective } from './directives/has-permission.directive';
+import { PermissionsService } from './services/permissions.service';
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
     provideRouter(routes),
+    PermissionsService,
+    HasPermissionDirective,
     provideAnimationsAsync(),
     providePrimeNG({
       theme: {

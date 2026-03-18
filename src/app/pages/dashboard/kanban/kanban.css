@@ -1,0 +1,193 @@
+.kanban-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  height: 100%;
+  padding-top: 1rem;
+}
+
+/* --- BARRA DE FILTROS --- */
+.filtros-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background-color: #1a1a1a;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #2d3748;
+}
+
+.filtros-label {
+  color: #e2e8f0;
+  font-weight: 600;
+}
+
+.filtro-btn {
+  background-color: transparent;
+  color: #a0aec0;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.filtro-btn:hover {
+  background-color: #2d3748;
+  color: #fff;
+}
+
+.filtro-btn.active {
+  background-color: #334155;
+  color: #fff;
+}
+
+/* --- TABLERO Y COLUMNAS --- */
+.board-wrapper {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+  min-height: 60vh;
+}
+
+.kanban-col {
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  border: 1px solid #2d3748;
+  min-width: 300px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.col-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 2px solid #3b82f6; /* Línea azul característica */
+}
+
+.col-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.badge {
+  background-color: #2d3748;
+  color: #e2e8f0;
+  padding: 0.15rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.col-body {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1; /* Permite soltar tarjetas en toda la columna vacía */
+}
+
+/* --- TARJETAS --- */
+.ticket-card {
+  background-color: #242424;
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid #333333;
+  cursor: grab;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.ticket-card:active {
+  cursor: grabbing; /* Cambia el cursor al arrastrar */
+  opacity: 0.8;
+}
+
+.ticket-card:hover {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  transform: translateY(-2px);
+  border-color: #4a4a4a;
+}
+
+.ticket-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.ticket-id {
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+/* Etiquetas de Prioridad */
+.ticket-prioridad {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+}
+.prio-alta { background-color: rgba(239, 68, 68, 0.15); color: #ef4444; }
+.prio-media { background-color: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+.prio-baja { background-color: rgba(56, 189, 248, 0.15); color: #38bdf8; }
+
+.ticket-title {
+  margin: 0 0 1.25rem 0;
+  color: #f8fafc;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+/* Footer de la tarjeta */
+.ticket-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #333;
+  padding-top: 0.75rem;
+}
+
+.assignee {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+.avatar.gray { background-color: #475569; }
+
+.assignee-name {
+  color: #cbd5e1;
+  font-size: 0.85rem;
+}
+
+.unassigned .assignee-name {
+  color: #64748b;
+  font-style: italic;
+}
+
+.ticket-date {
+  color: #94a3b8;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}

@@ -1,18 +1,25 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PermissionsService {
 
-  private permissions: string[] = [];
+  // lista de permisos del usuario
+  private userPermissions = signal<string[]>([]);
 
+  // cargar permisos (por ejemplo después del login)
   setPermissions(perms: string[]) {
-    this.permissions = perms;
+    this.userPermissions.set(perms);
   }
 
-  hasPermission(permission: string): boolean {
-    return this.permissions.includes(permission);
+  // verificar permiso simple
+  hasPermission(permiso: string): boolean {
+    return this.userPermissions().includes(permiso);
   }
 
+  // verificar si tiene alguno de varios permisos
+  hasAnyPermission(perms: string[]): boolean {
+    return perms.some(p => this.hasPermission(p));
+  }
 }

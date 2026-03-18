@@ -1,111 +1,119 @@
-<div class="p-4">
+<div class="p-4 w-full">
 
-  <div class="flex justify-content-between align-items-center mb-3">
-    <h2>Tickets</h2>
+  <div class="surface-card p-4 border-round shadow-2 main-card">
 
-    <p-button 
-      *ngIf="canAdd"
-      label="Nuevo Ticket"
-      icon="pi pi-plus"
-      (click)="openNew()">
-    </p-button>
+    <div class="flex justify-content-between align-items-center mb-5">
+      <h2 class="m-0 text-white text-2xl font-bold">Gestión de Tickets</h2>
+      
+      <p-button
+        *ngIf="canAdd"
+        label="Nuevo Ticket"
+        icon="pi pi-plus"
+        styleClass="custom-blue-btn"
+        (click)="openNew()">
+      </p-button>
+    </div>
+
+    <p-table
+      *ngIf="canView"
+      [value]="tickets"
+      responsiveLayout="scroll"
+      [paginator]="true"
+      [rows]="5"
+      styleClass="custom-table"
+      [rowHover]="true">
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Título</th>
+          <th>Estado</th>
+          <th>Prioridad</th>
+          <th>Asignado a</th>
+          <th style="width:140px">Acciones</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-ticket>
+        <tr>
+          <td class="font-bold text-white">{{ticket.titulo}}</td>
+          <td>
+            <p-tag [value]="ticket.estado" [severity]="getEstadoSeverity(ticket.estado)"></p-tag>
+          </td>
+          <td>
+            <p-tag [value]="ticket.prioridad" [severity]="getPrioridadSeverity(ticket.prioridad)"></p-tag>
+          </td>
+          <td class="text-400">{{ticket.autor}}</td>
+          <td>
+            <div class="flex gap-2">
+              <button *ngIf="canEdit" pButton icon="pi pi-pencil" class="p-button-rounded p-button-outlined action-btn edit-btn" (click)="editTicket(ticket)"></button>
+              
+              <button *ngIf="canDelete" pButton icon="pi pi-trash" class="p-button-rounded p-button-outlined action-btn delete-btn" (click)="deleteTicket(ticket.id!)"></button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5" class="text-center p-4 text-500">No hay tickets registrados</td>
+        </tr>
+      </ng-template>
+
+    </p-table>
 
   </div>
-
-  <p-table 
-    *ngIf="canView"
-    [value]="tickets"
-    [tableStyle]="{'min-width': '60rem'}">
-
-    <ng-template pTemplate="header">
-      <tr>
-        <th>Título</th>
-        <th>Estado</th>
-        <th>Prioridad</th>
-        <th>Autor</th>
-        <th>Acciones</th>
-      </tr>
-    </ng-template>
-
-    <ng-template pTemplate="body" let-ticket>
-      <tr>
-        <td>{{ticket.titulo}}</td>
-        <td>{{ticket.estado}}</td>
-        <td>{{ticket.prioridad}}</td>
-        <td>{{ticket.autor}}</td>
-
-        <td class="flex gap-2">
-
-          <p-button
-            *ngIf="canEdit"
-            icon="pi pi-pencil"
-            [text]="true"
-            (click)="editTicket(ticket)">
-          </p-button>
-
-          <p-button
-            *ngIf="canDelete"
-            icon="pi pi-trash"
-            severity="danger"
-            [text]="true"
-            (click)="deleteTicket(ticket.id!)">
-          </p-button>
-
-        </td>
-      </tr>
-    </ng-template>
-
-  </p-table>
-
 </div>
 
-
-<p-dialog 
+<p-dialog
   [(visible)]="ticketDialog"
-  header="Ticket"
+  [header]="editingId ? 'Editar Ticket' : 'Crear Nuevo Ticket'"
   [modal]="true"
-  [style]="{width: '400px'}">
+  [style]="{width:'450px'}"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="custom-dialog">
 
-  <form [formGroup]="ticketForm" class="flex flex-column gap-3">
+  <form [formGroup]="ticketForm" class="flex flex-column gap-3 mt-3">
 
-    <input pInputText placeholder="Título" formControlName="titulo">
+    <div class="field-group">
+      <label class="font-semibold block mb-2 text-sm text-gray-300">Título del Ticket *</label>
+      <input pInputText formControlName="titulo" class="w-full custom-input" />
+    </div>
 
-    <p-select 
-        [options]="['Abierto','En progreso','Cerrado']"
-        formControlName="estado"
-        placeholder="Estado">
-    </p-select>
+    <div class="field-group">
+      <label class="font-semibold block mb-2 text-sm text-gray-300">Descripción</label>
+      <textarea pInputTextarea rows="3" formControlName="descripcion" class="w-full custom-input"></textarea>
+    </div>
 
-    <p-select 
-        [options]="['Alta','Media','Baja']"
-        formControlName="prioridad"
-        placeholder="Prioridad">
-    </p-select>
+    <div class="flex gap-3 w-full">
+      <div class="field-group flex-1">
+        <label class="font-semibold block mb-2 text-sm text-gray-300">Estado Inicial</label>
+        <p-select [options]="['Pendiente','En progreso','Hecho']" formControlName="estado" appendTo="body" styleClass="w-full custom-input p-0"></p-select>
+      </div>
 
-    <input pInputText placeholder="Autor" formControlName="autor">
+      <div class="field-group flex-1">
+        <label class="font-semibold block mb-2 text-sm text-gray-300">Prioridad</label>
+        <p-select [options]="['Alta','Media','Baja']" formControlName="prioridad" appendTo="body" styleClass="w-full custom-input p-0"></p-select>
+      </div>
+    </div>
 
-    <textarea 
-      pInputTextarea
-      rows="3"
-      placeholder="Descripción"
-      formControlName="descripcion">
-    </textarea>
+    <div class="field-group">
+      <label class="font-semibold block mb-2 text-sm text-gray-300">Asignado a</label>
+      <div class="p-inputgroup custom-input-group">
+        <span class="p-inputgroup-addon bg-transparent border-none text-gray-400 pl-3">
+          <i class="pi pi-user"></i>
+        </span>
+        <input pInputText formControlName="autor" class="custom-input border-none w-full" />
+      </div>
+    </div>
 
   </form>
 
   <ng-template pTemplate="footer">
-
-    <p-button 
-      label="Cancelar"
-      severity="secondary"
-      (click)="ticketDialog=false">
-    </p-button>
-
-    <p-button 
-      label="Guardar"
-      (click)="saveTicket()">
-    </p-button>
-
+    <div class="flex justify-content-end gap-3 mt-4 align-items-center">
+      <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" styleClass="text-gray-400 hover:text-white" (click)="ticketDialog=false"></p-button>
+      <p-button [label]="editingId ? 'Guardar' : 'Crear'" icon="pi pi-check" styleClass="custom-blue-btn" (click)="saveTicket()"></p-button>
+    </div>
   </ng-template>
 
 </p-dialog>

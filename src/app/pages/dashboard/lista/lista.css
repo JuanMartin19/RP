@@ -1,0 +1,195 @@
+.lista-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-top: 1rem;
+}
+
+/* --- BARRA DE FILTROS SUPERIOR --- */
+.filtros-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background-color: #1a1a1a;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #2d3748;
+}
+
+.filtros-label { color: #e2e8f0; font-weight: 600; }
+
+.filtro-btn {
+  background-color: transparent;
+  color: #a0aec0;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.filtro-btn:hover { background-color: #2d3748; color: #fff; }
+.filtro-btn.active { background-color: #334155; color: #fff; }
+
+/* --- CONTENEDOR DE TABLA --- */
+.table-card {
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  border: 1px solid #2d3748;
+  padding: 1.5rem;
+}
+
+/* --- CABECERA (Buscador y Título) --- */
+.table-header-custom {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 1rem;
+}
+
+.table-header-custom h3 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* Input de Búsqueda */
+.search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-wrapper i {
+  position: absolute;
+  left: 1rem;
+  color: #94a3b8;
+}
+
+.search-wrapper input {
+  background-color: #0f172a;
+  border: 1px solid #334155;
+  color: #ffffff;
+  padding: 0.5rem 1rem 0.5rem 2.5rem;
+  border-radius: 6px;
+  width: 250px;
+}
+
+.search-wrapper input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+/* --- SOBRESCRIBIENDO ESTILOS DE P-TABLE A MODO OSCURO --- */
+:host ::ng-deep .custom-table .p-datatable-header {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+:host ::ng-deep .custom-table .p-datatable-thead > tr > th {
+  background-color: transparent !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-bottom: 1px solid #334155 !important;
+  padding: 1rem 0.5rem;
+  font-size: 0.9rem;
+}
+
+:host ::ng-deep .custom-table .p-datatable-tbody > tr {
+  background-color: transparent !important;
+  color: #cbd5e1 !important;
+  transition: background-color 0.2s;
+}
+
+/* Efecto Hover en filas */
+:host ::ng-deep .custom-table .p-datatable-tbody > tr:hover {
+  background-color: #242424 !important;
+}
+
+:host ::ng-deep .custom-table .p-datatable-tbody > tr > td {
+  border: none !important;
+  border-bottom: 1px solid #2d3748 !important;
+  padding: 1rem 0.5rem;
+  font-size: 0.9rem;
+}
+
+/* Quitar fondo de la cabecera al pasar mouse sobre los títulos ordenables */
+:host ::ng-deep .custom-table .p-datatable-thead > tr > th:hover {
+  background-color: transparent !important;
+}
+
+/* Estilos para el Dropdown de "Filtrar Estado" */
+:host ::ng-deep .p-dropdown {
+  background-color: #0f172a;
+  border: 1px solid #334155;
+}
+:host ::ng-deep .p-dropdown .p-dropdown-label {
+  color: #e2e8f0;
+}
+
+/* --- BOTONES DE ACCIÓN --- */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+:host ::ng-deep .action-btn.p-button {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border-radius: 50% !important;
+  background-color: transparent !important;
+}
+
+:host ::ng-deep .edit-btn.p-button {
+  color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+}
+:host ::ng-deep .edit-btn.p-button:hover {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+}
+
+:host ::ng-deep .delete-btn.p-button {
+  color: #ef4444 !important;
+  border-color: #ef4444 !important;
+}
+:host ::ng-deep .delete-btn.p-button:hover {
+  background-color: rgba(239, 68, 68, 0.1) !important;
+}
+
+/* --- ESTILOS DEL MODAL (DARK MODE) --- */
+:host ::ng-deep .custom-dialog .p-dialog-header {
+  background-color: #1e1e1e;
+  color: #ffffff;
+  border-bottom: 1px solid #334155;
+  padding: 1.25rem 1.5rem;
+}
+
+:host ::ng-deep .custom-dialog .p-dialog-content {
+  background-color: #1e1e1e;
+  color: #e2e8f0;
+  padding: 1rem 1.5rem;
+}
+
+:host ::ng-deep .custom-dialog .p-dialog-footer {
+  background-color: #1e1e1e;
+  border-top: 1px solid #334155;
+  padding: 1rem 1.5rem;
+}
+
+/* Inputs dentro del Modal */
+.field-group input {
+  background-color: #0f172a;
+  border: 1px solid #334155;
+  color: #ffffff;
+  padding: 0.75rem;
+  border-radius: 6px;
+}
+
+.field-group input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}

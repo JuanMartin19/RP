@@ -1,0 +1,89 @@
+/* Contenedor principal para dar espaciado */
+.resumen-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding-top: 1rem;
+}
+
+/* --- TARJETAS DE ESTADÍSTICAS --- */
+.stats-wrapper {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  flex-wrap: wrap; /* Para que bajen de línea si la pantalla es pequeña */
+}
+
+.stat-card {
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+  flex: 1; /* Hace que todas las tarjetas midan lo mismo */
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  /* Borde base transparente, se sobreescribe con las clases de abajo */
+  border-left: 4px solid transparent; 
+}
+
+.stat-label {
+  font-size: 1rem;
+  color: #e2e8f0;
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* Colores de los bordes laterales */
+.border-orange { border-left-color: #f97316; }
+.border-blue   { border-left-color: #3b82f6; }
+.border-yellow { border-left-color: #eab308; }
+.border-green  { border-left-color: #22c55e; }
+.border-red    { border-left-color: #ef4444; }
+
+
+/* --- SECCIÓN DE LA TABLA --- */
+.table-container {
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.table-title {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+/* Sobrescribiendo los estilos de PrimeNG Table para Modo Oscuro */
+:host ::ng-deep .custom-table .p-datatable-header,
+:host ::ng-deep .custom-table .p-datatable-thead > tr > th {
+  background-color: transparent !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-bottom: 1px solid #334155 !important;
+  padding: 0.75rem 0.5rem;
+  font-weight: 700;
+  text-align: left;
+}
+
+:host ::ng-deep .custom-table .p-datatable-tbody > tr {
+  background-color: transparent !important;
+  color: #cbd5e1 !important;
+}
+
+:host ::ng-deep .custom-table .p-datatable-tbody > tr > td {
+  border: none !important;
+  border-bottom: 1px solid #2d3748 !important; 
+  padding: 1rem 0.5rem;
+}
+
+/* Quitar la línea al último elemento de la tabla para que se vea más limpio */
+:host ::ng-deep .custom-table .p-datatable-tbody > tr:last-child > td {
+  border-bottom: none !important;
+}

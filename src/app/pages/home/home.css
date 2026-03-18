@@ -1,10 +1,114 @@
+/* Contenedor y Fondo */
 :host {
-    display: block;
-    width: 100%;
+  display: block;
+  width: 100%;
+  min-height: 100vh;
+  color: #ffffff;
+  padding: 3rem;
+  box-sizing: border-box;
 }
 
-:host ::ng-deep .p-card {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+/* --- Cabecera --- */
+.dashboard-header h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+}
+
+.dashboard-header p {
+  color: #a0a0a0;
+  font-size: 1.125rem;
+  margin: 0 0 2rem 0;
+}
+
+/* --- Layout Principal de las Tarjetas --- */
+.cards-wrapper {
+  display: flex;
+  flex-direction: row; /* Alinea los elementos en horizontal */
+  flex-wrap: wrap;     /* Permite que bajen a la siguiente línea si no hay espacio */
+  gap: 1.5rem;         /* Espacio entre las tarjetas */
+  align-items: center; /* Centra verticalmente la flecha con las tarjetas */
+}
+
+/* --- Estilos de la Tarjeta PrimeNG --- */
+:host ::ng-deep .custom-card {
+  background-color: #1e1e1e !important;
+  border-radius: 10px;
+  width: 320px;
+  border: none;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+:host ::ng-deep .custom-card .p-card-body {
+  padding: 1.5rem;
+}
+
+/* Textos dentro de la tarjeta */
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.card-subtitle {
+  color: #a0a0a0;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Footer de la tarjeta: Separa el Tag a la izquierda y el botón a la derecha */
+.card-footer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+/* --- Estilos de Tags --- */
+:host ::ng-deep .custom-tag {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+:host ::ng-deep .tag-success { color: #4ade80; background-color: rgba(74, 222, 128, 0.15); }
+:host ::ng-deep .tag-info { color: #60a5fa; background-color: rgba(96, 165, 250, 0.15); }
+:host ::ng-deep .tag-warning { color: #fb923c; background-color: rgba(251, 146, 60, 0.15); }
+:host ::ng-deep .tag-danger { color: #f87171; background-color: rgba(248, 113, 113, 0.15); }
+
+/* --- Botón Verde --- */
+:host ::ng-deep .custom-btn {
+  background-color: #4ade80 !important;
+  color: #121212 !important;
+  border: none !important;
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  transition: background-color 0.2s;
+}
+
+:host ::ng-deep .custom-btn:hover {
+  background-color: #22c55e !important;
+}
+
+/* --- Círculo de la flecha lateral --- */
+.nav-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #1e1e1e;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+
+.nav-arrow:hover {
+  background-color: #2d2d2d;
 }

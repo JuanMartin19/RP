@@ -1,0 +1,145 @@
+:host {
+  display: block;
+  background-color: #0f172a; /* Fondo ultra oscuro del sistema */
+  min-height: 100vh;
+  width: 100%;
+}
+
+.user-card {
+  background-color: #1a1a1a !important; /* Fondo de la tarjeta */
+  border: 1px solid #2d3748 !important;
+}
+
+/* Botón Nuevo Usuario (Azul) */
+:host ::ng-deep .custom-blue-btn { 
+  background-color: #3b82f6 !important; 
+  border-color: #3b82f6 !important; 
+  color: #fff !important;
+}
+:host ::ng-deep .custom-blue-btn:hover { background-color: #2563eb !important; }
+
+/* --- ETIQUETAS DE PERMISOS OSCURAS --- */
+.permiso-tag {
+  background-color: #1e293b;
+  color: #cbd5e1;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid #334155;
+}
+
+/* --- ESTILOS DE TABLA PRIME NG A MODO OSCURO --- */
+:host ::ng-deep .custom-table .p-datatable-header,
+:host ::ng-deep .custom-table .p-datatable-thead > tr > th {
+  background-color: transparent !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-bottom: 1px solid #334155 !important;
+  padding: 1rem 0.5rem;
+  font-size: 0.9rem;
+}
+
+:host ::ng-deep .custom-table .p-datatable-tbody > tr {
+  background-color: transparent !important;
+  transition: background-color 0.2s;
+}
+
+:host ::ng-deep .custom-table .p-datatable-tbody > tr:hover { background-color: #242424 !important; }
+
+:host ::ng-deep .custom-table .p-datatable-tbody > tr > td {
+  border: none !important;
+  border-bottom: 1px solid #2d3748 !important;
+  padding: 1rem 0.5rem;
+  font-size: 0.9rem;
+}
+
+/* --- BOTONES DE ACCIÓN (LÁPIZ Y BASURA) --- */
+:host ::ng-deep .action-btn.p-button {
+  width: 2.2rem;
+  height: 2.2rem;
+  padding: 0;
+  border-radius: 50% !important;
+  background-color: transparent !important;
+}
+
+:host ::ng-deep .edit-btn.p-button { color: #3b82f6 !important; border-color: #3b82f6 !important; }
+:host ::ng-deep .edit-btn.p-button:hover { background-color: rgba(59, 130, 246, 0.1) !important; }
+
+:host ::ng-deep .delete-btn.p-button { color: #ef4444 !important; border-color: #ef4444 !important; }
+:host ::ng-deep .delete-btn.p-button:hover { background-color: rgba(239, 68, 68, 0.1) !important; }
+
+/* --- MODAL --- */
+:host ::ng-deep .custom-dialog .p-dialog-header,
+:host ::ng-deep .custom-dialog .p-dialog-content,
+:host ::ng-deep .custom-dialog .p-dialog-footer {
+  background-color: #1e1e1e;
+  color: #ffffff;
+  border-color: #334155;
+}
+
+.custom-input {
+  background-color: #0f172a !important;
+  border: 1px solid #334155 !important;
+  color: #ffffff !important;
+  border-radius: 6px;
+}
+.custom-input:focus-within { border-color: #3b82f6 !important; }
+
+:host ::ng-deep .p-picklist .p-picklist-list {
+    background-color: #0f172a !important;
+    border: 1px solid #334155 !important;
+    color: #fff !important;
+    height: 250px !important;
+}
+
+:host ::ng-deep .p-picklist .p-picklist-item {
+    color: #cbd5e1 !important;
+    padding: 0.5rem 1rem !important;
+    border-bottom: 1px solid #1e293b;
+}
+
+:host ::ng-deep .p-picklist .p-picklist-item:hover {
+    background-color: #1e293b !important;
+}
+
+:host ::ng-deep .p-picklist .p-picklist-item.p-highlight {
+    background-color: #3b82f6 !important;
+    color: #fff !important;
+}
+
+:host ::ng-deep .p-picklist .p-picklist-header {
+    background-color: #1a1a1a !important;
+    color: #3b82f6 !important;
+    border-color: #334155 !important;
+    font-weight: bold;
+}
+
+:host ::ng-deep .p-picklist .p-picklist-buttons .p-button {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    color: #fff !important;
+}
+
+:host ::ng-deep .p-picklist .p-picklist-filter-container {
+    background-color: #1a1a1a !important;
+    padding: 0.5rem !important;
+    border-color: #334155 !important;
+}
+
+:host ::ng-deep .p-picklist .p-picklist-filter-input {
+    background-color: #0f172a !important;
+    color: white !important;
+    border-color: #334155 !important;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Forzar visibilidad del p-card */
+:host ::ng-deep .user-card.p-card {
+    display: block !important;
+    visibility: visible !important;
+}

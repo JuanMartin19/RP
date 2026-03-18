@@ -21,53 +21,38 @@ export class Login {
   constructor(
     private router: Router,
     private permsSvc: PermissionsService
-  ) {}
+  ) { }
 
   login() {
 
     const v = this.loginForm.value;
 
-    if (v.email === 'admin@gmail.com' && v.password === 'admin') {
-
-      const ADMIN_PERMS = [
-
-        'groups:view','groups:add','groups:edit','groups:delete',
-        'users:view','users:add','users:edit','users:delete',
-        'tickets:view','tickets:add','tickets:edit','tickets:delete'
-
-      ];
-
-      this.permsSvc.setPermissions(ADMIN_PERMS);
-
-      alert('Bienvenido ADMIN');
-
-      this.router.navigate(['/home']);
-
+    if (!v.email || !v.password) {
+      alert('Debe ingresar correo y contraseña');
+      return;
     }
 
-    else if (v.email === 'user@gmail.com' && v.password === 'user') {
+    const permissions = [
 
-      const USER_PERMS = [
+      // Groups
+      'groups:view', 'group:view', 'group:add', 'group:edit', 'group:delete',
 
-        'groups:view',
-        'users:view',
-        'tickets:view'
-        
-      ];
+      // Users
+      'users:view', 'user:add', 'user:view:all', 'users:add',
+      'user:edit', 'users:edit',
+      'user:delete', 'users:delete',
 
-      this.permsSvc.setPermissions(USER_PERMS);
+      // Tickets
+      'tickets:view', 'ticket:add', 'ticket:view',
+      'ticket:edite',
+      'ticket:edite:state',
+      'ticket:delete'
 
-      alert('Bienvenido USER');
+    ];
 
-      this.router.navigate(['/home']);
+    this.permsSvc.setPermissions(permissions);
 
-    }
-
-    else {
-
-      alert('Correo o contraseña incorrectos');
-
-    }
+    this.router.navigate(['/home']);
 
   }
 

@@ -1,0 +1,91 @@
+<p-drawer 
+  [(visible)]="visible" 
+  position="right" 
+  styleClass="ticket-drawer-modern" 
+  (onHide)="cerrarPanel()"
+  [showCloseIcon]="false">
+
+  <div class="drawer-content-wrapper" *ngIf="ticket">
+    
+    <div class="drawer-header">
+      <div class="title-group">
+        <span class="id-badge">{{ ticket.id || 'TK-1' }}</span>
+        <h2 class="main-title">{{ ticket.titulo }}</h2>
+      </div>
+      <div class="action-group">
+        <p-button label="Guardar" icon="pi pi-check" styleClass="btn-save" (onClick)="guardarCambios()"></p-button>
+        <p-button icon="pi pi-times" [text]="true" styleClass="btn-close" (onClick)="cerrarPanel()"></p-button>
+      </div>
+    </div>
+
+    <div class="drawer-body">
+      
+      <div class="metadata-grid">
+        <div class="meta-item">
+          <label>ESTADO</label>
+          <p-select [options]="estados" [(ngModel)]="ticket.estado" styleClass="fluid-select"></p-select>
+        </div>
+        <div class="meta-item">
+          <label>PRIORIDAD</label>
+          <p-select [options]="prioridadesChino" optionLabel="label" optionValue="value" [(ngModel)]="ticket.prioridad" styleClass="fluid-select"></p-select>
+        </div>
+        <div class="meta-item">
+          <label>RESPONSABLE</label>
+          <div class="user-chip">
+            <i class="pi pi-user"></i>
+            <span>{{ ticket.asignado || 'Jonathan' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <div class="description-section">
+        <label>DESCRIPCIÓN</label>
+        <textarea pInputTextarea rows="3" [(ngModel)]="ticket.descripcion" placeholder="Sin descripción..." class="fluid-textarea"></textarea>
+      </div>
+
+      <div class="activity-section">
+        <p-tabs value="0">
+          <p-tablist>
+            <p-tab value="0">Comentarios</p-tab>
+            <p-tab value="1">Historial</p-tab>
+          </p-tablist>
+          <p-tabpanels>
+            <p-tabpanel value="0">
+              <div class="comment-post">
+                <textarea pInputTextarea rows="2" [(ngModel)]="nuevoComentario" placeholder="Escribe algo..." class="fluid-textarea"></textarea>
+                <div class="flex justify-content-end mt-2">
+                  <p-button label="Comentar" size="small" (onClick)="agregarComentario()"></p-button>
+                </div>
+              </div>
+              <div class="comment-feed">
+                <div class="feed-item" *ngFor="let c of comentarios">
+                  <div class="avatar-circle">{{ c.autor.charAt(0) }}</div>
+                  <div class="feed-text">
+                    <div class="feed-header"><strong>{{c.autor}}</strong> <small>{{c.fecha}}</small></div>
+                    <p>{{c.texto}}</p>
+                  </div>
+                </div>
+              </div>
+            </p-tabpanel>
+            <p-tabpanel value="1">
+               <div class="history-feed">
+                  <div class="history-step" *ngFor="let h of historial">
+                    <i class="pi pi-history"></i>
+                    <span><strong>{{h.autor}}</strong> {{h.accion}} ({{h.fecha}})</span>
+                  </div>
+               </div>
+            </p-tabpanel>
+          </p-tabpanels>
+        </p-tabs>
+      </div>
+    </div>
+
+    <div class="drawer-footer">
+        <span>Creado el 2026-03-14</span>
+        <span>Límite: {{ ticket.fechaLimite || '2026-03-15' }}</span>
+    </div>
+
+  </div>
+</p-drawer>

@@ -1,0 +1,71 @@
+<div class="kanban-container">
+  
+  <div class="filtros-bar">
+    <i class="pi pi-filter text-gray-400"></i>
+    <span class="filtros-label">Filtros rápidos:</span>
+    
+    <button 
+      *ngFor="let filtro of filtrosDisponibles"
+      class="filtro-btn" 
+      [class.active]="filtroActivo === filtro"
+      (click)="cambiarFiltro(filtro)">
+      {{ filtro }}
+    </button>
+  </div>
+
+  <div class="board-wrapper">
+    
+    <div class="kanban-col" 
+         *ngFor="let col of columnas" 
+         pDroppable="tickets" 
+         (onDrop)="drop(col.valor)">
+      
+      <div class="col-header">
+        <h3>{{ col.titulo }}</h3>
+        <span class="badge">{{ getTicketsPorEstado(col.valor).length }}</span>
+      </div>
+      
+      <div class="col-body">
+        
+        <div class="ticket-card" 
+             *ngFor="let ticket of getTicketsPorEstado(col.valor)"
+             pDraggable="tickets"
+             (onDragStart)="dragStart(ticket)"
+             (onDragEnd)="dragEnd()"
+             (click)="abrirDetalle(ticket)">
+             
+          <div class="ticket-header">
+            <span class="ticket-id">{{ ticket.id }}</span>
+            <span class="ticket-prioridad" [ngClass]="'prio-' + ticket.prioridad.toLowerCase()">
+              {{ ticket.prioridad }}
+            </span>
+          </div>
+          
+          <h4 class="ticket-title">{{ ticket.titulo }}</h4>
+          
+          <div class="ticket-footer">
+            
+            <div class="assignee" *ngIf="ticket.asignado">
+              <div class="avatar" [style.backgroundColor]="ticket.asignado.color">
+                {{ ticket.asignado.iniciales }}
+              </div>
+              <span class="assignee-name">{{ ticket.asignado.nombre }}</span>
+            </div>
+            
+            <div class="assignee unassigned" *ngIf="!ticket.asignado">
+              <div class="avatar gray"><i class="pi pi-user"></i></div>
+              <span class="assignee-name">Sin asignar</span>
+            </div>
+
+            <div class="ticket-date">
+              <i class="pi pi-calendar"></i> {{ ticket.fecha }}
+            </div>
+            
+          </div>
+        </div>
+        
+      </div>
+    </div>
+    
+  </div>
+</div>

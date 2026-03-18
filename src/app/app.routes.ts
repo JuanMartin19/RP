@@ -40,6 +40,56 @@ export const routes: Routes = [
       },
 
       {
+        path: 'dashboard/:id',
+        loadComponent: () =>
+          import('./pages/dashboard/dashboard').then(m => m.Dashboard),
+
+        children: [
+
+          {
+            path: '',
+            redirectTo: 'resumen',
+            pathMatch: 'full'
+          },
+
+          {
+            path: 'resumen',
+            loadComponent: () =>
+              import('./pages/dashboard/resumen/resumen')
+                .then(m => m.Resumen)
+          },
+
+          {
+            path: 'kanban',
+            loadComponent: () =>
+              import('./pages/dashboard/kanban/kanban')
+                .then(m => m.Kanban)
+          },
+
+          {
+            path: 'lista',
+            loadComponent: () =>
+              import('./pages/dashboard/lista/lista')
+                .then(m => m.Lista)
+          },
+
+          {
+            path: 'gestion',
+            loadComponent: () =>
+              import('./pages/dashboard/gestion/gestion')
+                .then(m => m.Gestion)
+          }
+
+        ]
+      },
+
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./pages/dashboard/dashboard')
+          .then(m => m.Dashboard)
+      },
+
+      {
         path: 'groups',
         loadComponent: () =>
           import('./pages/groups/groups').then(m => m.Groups)

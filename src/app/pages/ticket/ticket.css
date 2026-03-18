@@ -1,3 +1,118 @@
 :host {
   display: block;
+  background-color: #0f172a; /* Fondo principal oscuro */
+  min-height: 100vh;
+  width: 100%;
 }
+
+.main-card {
+  background-color: #1a1a1a !important; 
+  border: 1px solid #2d3748 !important;
+}
+
+/* --- TABLA MODO OSCURO --- */
+:host ::ng-deep .custom-table .p-datatable-header,
+:host ::ng-deep .custom-table .p-datatable-thead > tr > th {
+  background-color: transparent !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-bottom: 1px solid #334155 !important;
+  padding: 1rem 0.5rem;
+  font-size: 0.9rem;
+}
+
+:host ::ng-deep .custom-table .p-datatable-tbody > tr {
+  background-color: transparent !important;
+  transition: background-color 0.2s;
+}
+
+:host ::ng-deep .custom-table .p-datatable-tbody > tr:hover { background-color: #242424 !important; }
+
+:host ::ng-deep .custom-table .p-datatable-tbody > tr > td {
+  border: none !important;
+  border-bottom: 1px solid #2d3748 !important;
+  padding: 1rem 0.5rem;
+  font-size: 0.9rem;
+}
+
+/* --- BOTONES DE LA TABLA --- */
+:host ::ng-deep .action-btn.p-button {
+  width: 2.2rem;
+  height: 2.2rem;
+  padding: 0;
+  border-radius: 50% !important;
+  background-color: transparent !important;
+}
+:host ::ng-deep .edit-btn.p-button { color: #3b82f6 !important; border-color: #3b82f6 !important; }
+:host ::ng-deep .edit-btn.p-button:hover { background-color: rgba(59, 130, 246, 0.1) !important; }
+:host ::ng-deep .delete-btn.p-button { color: #ef4444 !important; border-color: #ef4444 !important; }
+:host ::ng-deep .delete-btn.p-button:hover { background-color: rgba(239, 68, 68, 0.1) !important; }
+
+/* --- ESTILOS DEL MODAL DARK MODE --- */
+:host ::ng-deep .custom-dialog .p-dialog-header {
+  background-color: #1a1a1a;
+  color: #ffffff;
+  border-bottom: 1px solid #2d3748;
+  padding: 1.25rem 1.5rem;
+}
+
+:host ::ng-deep .custom-dialog .p-dialog-content {
+  background-color: #1a1a1a;
+  color: #e2e8f0;
+  padding: 1rem 1.5rem;
+}
+
+:host ::ng-deep .custom-dialog .p-dialog-footer {
+  background-color: #1a1a1a;
+  border-top: 1px solid #2d3748;
+  padding: 1rem 1.5rem;
+}
+
+/* --- INPUTS --- */
+.custom-input {
+  background-color: #0f172a !important; /* Fondo azul grisáceo */
+  border: 1px solid #334155 !important;
+  color: #ffffff !important;
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.custom-input:focus, 
+:host ::ng-deep .custom-input.p-focus {
+  border-color: #3b82f6 !important; /* Borde azul de acento */
+  outline: none;
+}
+
+/* --- INPUT GROUP (Ícono Asignado a) --- */
+.custom-input-group {
+  background-color: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+  display: flex;
+}
+
+.custom-input-group:focus-within {
+  border-color: #3b82f6; 
+}
+
+.custom-input-group .p-inputgroup-addon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-right: 0.5rem;
+}
+
+.text-gray-300 { color: #cbd5e1; }
+.text-gray-400 { color: #94a3b8; }
+
+/* Botones Principales Azules */
+:host ::ng-deep .custom-blue-btn { 
+  background-color: #3b82f6 !important; 
+  border-color: #3b82f6 !important; 
+  color: #fff !important;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+}
+:host ::ng-deep .custom-blue-btn:hover { background-color: #2563eb !important; }

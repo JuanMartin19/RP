@@ -1,119 +1,126 @@
-<p-card header="Gestión de Usuarios">
+<div class="p-4 w-full main-view">
 
-    <p-toolbar class="mb-3">
+  <div class="surface-card p-4 border-round shadow-2 user-card">
 
-        <ng-template pTemplate="left">
-            <button
-                *ngIf="canAddUsers"
-                pButton
-                label="Nuevo Usuario"
-                icon="pi pi-plus"
-                (click)="abrirNuevo()">
-            </button>
-        </ng-template>
+    <div class="flex justify-content-between align-items-center mb-5">
+      <div>
+        <h2 class="m-0 text-white text-2xl font-bold">Gestión Global de Usuarios</h2>
+        <p class="m-0 text-400 mt-1">Panel de Control para SuperAdmin</p>
+      </div>
 
-    </p-toolbar>
-
+      <p-button
+        *ngIf="canAddUsers"
+        label="Nuevo Usuario"
+        icon="pi pi-user-plus"
+        styleClass="custom-blue-btn"
+        (click)="abrirNuevo()">
+      </p-button>
+    </div>
 
     <p-table 
-        [value]="usuarios"
-        [paginator]="true"
-        [rows]="5"
-        responsiveLayout="scroll">
+      [value]="usuarios"
+      [paginator]="true"
+      [rows]="10"
+      responsiveLayout="scroll"
+      styleClass="custom-table"
+      [rowHover]="true">
 
-        <ng-template pTemplate="header">
-            <tr>
-                <th>Nombre</th>
-                <th>Email</th>
-                <th>Estado</th>
-                <th style="width:150px">Acciones</th>
-            </tr>
-        </ng-template>
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="nombre">Nombre <p-sortIcon field="nombre"></p-sortIcon></th>
+          <th pSortableColumn="email">Email <p-sortIcon field="email"></p-sortIcon></th>
+          <th>Permisos Asignados (Roles)</th>
+          <th style="width:120px">Acciones</th>
+        </tr>
+      </ng-template>
 
-        <ng-template pTemplate="body" let-usuario>
-            <tr>
+      <ng-template pTemplate="body" let-usuario>
+        <tr>
+          <td class="font-bold text-white">{{usuario.nombre}}</td>
+          <td class="text-400">{{usuario.email}}</td>
+          
+          <td>
+            <div class="flex flex-wrap gap-2">
+              <span *ngFor="let permiso of usuario.permisos" class="permiso-tag">
+                {{ permiso }}
+              </span>
+            </div>
+          </td>
 
-                <td>{{usuario.nombre}}</td>
+          <td>
+            <div class="flex gap-2">
+              <button
+                *ngIf="canEditUsers"
+                pButton
+                icon="pi pi-pencil"
+                class="p-button-rounded p-button-outlined action-btn edit-btn"
+                (click)="editarUsuario(usuario)">
+              </button>
 
-                <td>{{usuario.email}}</td>
-
-                <td>
-                    <p-tag 
-                        [value]="usuario.estado"
-                        [severity]="usuario.estado === 'Activo' ? 'success' : 'danger'">
-                    </p-tag>
-                </td>
-
-                <td class="flex gap-2">
-
-                    <button
-                        *ngIf="canEditUsers"
-                        pButton
-                        icon="pi pi-pencil"
-                        severity="info"
-                        (click)="editarUsuario(usuario)">
-                    </button>
-
-                    <button
-                        *ngIf="canDeleteUsers"
-                        pButton
-                        icon="pi pi-trash"
-                        severity="danger"
-                        (click)="eliminarUsuario(usuario)">
-                    </button>
-
-                </td>
-
-            </tr>
-        </ng-template>
+              <button
+                *ngIf="canDeleteUsers"
+                pButton
+                icon="pi pi-trash"
+                class="p-button-rounded p-button-outlined action-btn delete-btn"
+                (click)="eliminarUsuario(usuario)">
+              </button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="4" class="text-center p-4 text-500">No hay usuarios registrados</td>
+        </tr>
+      </ng-template>
 
     </p-table>
-
-</p-card>
-
+  </div>
+</div>
 
 <p-dialog 
-    header="Usuario"
-    [(visible)]="visible"
-    [modal]="true"
-    [style]="{width:'400px'}">
+  [header]="editando ? 'Gestionar Permisos de Usuario' : 'Nuevo Usuario'"
+  [(visible)]="visible" 
+  [modal]="true" 
+  [style]="{width:'850px'}" 
+  [draggable]="false" 
+  [resizable]="false"
+  styleClass="custom-dialog">
 
-    <form [formGroup]="usuarioForm" class="flex flex-column gap-3">
+  <form [formGroup]="usuarioForm" class="flex flex-column gap-4 mt-3">
+    <div class="flex gap-3">
+        <input pInputText placeholder="Nombre" formControlName="nombre" class="flex-1 custom-input">
+        <input pInputText placeholder="Email" formControlName="email" class="flex-1 custom-input">
+    </div>
 
-        <input 
-            pInputText 
-            placeholder="Nombre"
-            formControlName="nombre">
+    <div class="picklist-wrapper">
+        <label class="block mb-2 font-bold text-gray-400">Asignación de Permisos</label>
+        <p-picklist 
+            [source]="permisosDisponibles" 
+            [target]="permisosSeleccionados" 
+            sourceHeader="Disponibles" 
+            targetHeader="Asignados" 
+            [responsive]="true" 
+            [dragdrop]="true" 
+            breakpoint="1000px" 
+            sourceFilterPlaceholder="Buscar..." 
+            targetFilterPlaceholder="Buscar..."
+            [showSourceControls]="false" 
+            [showTargetControls]="false">
+            
+            <ng-template let-permiso pTemplate="item">
+                <div class="flex align-items-center gap-2">
+                    <i class="pi pi-shield text-blue-400"></i>
+                    <span style="font-size: 0.85rem;">{{ permiso }}</span>
+                </div>
+            </ng-template>
+        </p-picklist>
+    </div>
+  </form>
 
-        <input 
-            pInputText 
-            placeholder="Email"
-            formControlName="email">
-
-        <p-select
-            [options]="['Activo','Inactivo']"
-            formControlName="estado"
-            placeholder="Estado">
-        </p-select>
-
-    </form>
-
-
-    <ng-template pTemplate="footer">
-
-        <button 
-            pButton 
-            label="Cancelar"
-            severity="secondary"
-            (click)="visible=false">
-        </button>
-
-        <button 
-            pButton 
-            label="Guardar"
-            (click)="guardarUsuario()">
-        </button>
-
-    </ng-template>
-
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" severity="secondary" [outlined]="true" (click)="visible=false"></p-button>
+    <p-button label="Guardar Usuario" severity="success" icon="pi pi-save" (click)="guardarUsuario()"></p-button>
+  </ng-template>
 </p-dialog>

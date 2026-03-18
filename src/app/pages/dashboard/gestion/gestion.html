@@ -1,0 +1,90 @@
+<div class="gestion-container">
+
+  <div class="header-section">
+    <div>
+      <p class="subtitle">Configuración del Espacio</p>
+      <h1 class="title">{{ nombreGrupo }}</h1>
+    </div>
+    
+    <p-button 
+      *ngIf="canEditGroup"
+      label="Editar Grupo" 
+      icon="pi pi-pencil" 
+      styleClass="custom-outline-btn"
+      (onClick)="editarGrupo()">
+    </p-button>
+  </div>
+
+  <div class="action-box" *ngIf="canAddMember">
+    <p-button 
+      label="Añadir por Email" 
+      icon="pi pi-user-plus" 
+      styleClass="custom-blue-btn">
+    </p-button>
+  </div>
+
+  <div class="table-card">
+    
+    <p-table 
+      #dt 
+      [value]="miembros" 
+      [paginator]="true" 
+      [rows]="5" 
+      [globalFilterFields]="['nombre', 'email', 'rol']" 
+      styleClass="custom-table" 
+      [rowHover]="true">
+      
+      <ng-template pTemplate="caption">
+        <div class="table-header">
+          <h3>Miembros del Grupo</h3>
+          <span class="search-wrapper">
+            <i class="pi pi-search"></i>
+            <input 
+              pInputText 
+              type="text" 
+              (input)="dt.filterGlobal($any($event.target).value, 'contains')" 
+              placeholder="Buscar miembro..." />
+          </span>
+        </div>
+      </ng-template>
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="nombre">Nombre <p-sortIcon field="nombre"></p-sortIcon></th>
+          <th pSortableColumn="email">Email <p-sortIcon field="email"></p-sortIcon></th>
+          <th pSortableColumn="rol">Rol <p-sortIcon field="rol"></p-sortIcon></th>
+          <th pSortableColumn="fecha">Fecha Ingreso <p-sortIcon field="fecha"></p-sortIcon></th>
+          <th>Acciones</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-miembro>
+        <tr>
+          <td class="col-nombre">{{ miembro.nombre }}</td>
+          <td class="col-email">{{ miembro.email }}</td>
+          <td>
+            <p-tag [value]="miembro.rol" [severity]="getRolSeverity(miembro.rol)"></p-tag>
+          </td>
+          <td class="col-fecha">{{ miembro.fecha }}</td>
+          <td>
+            <button 
+              *ngIf="canDeleteMember"
+              pButton 
+              icon="pi pi-trash" 
+              class="p-button-rounded p-button-outlined action-btn delete-btn" 
+              (click)="eliminarMiembro(miembro)">
+            </button>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5" class="empty-message">No se encontraron miembros.</td>
+        </tr>
+      </ng-template>
+
+    </p-table>
+  </div>
+
+</div>

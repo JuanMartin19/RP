@@ -7,42 +7,36 @@
 
     <nav class="menu">
 
+        <!-- HOME -->
         <a routerLink="/home" routerLinkActive="active">
             <i class="pi pi-home"></i>
             <span>Inicio</span>
         </a>
 
+        <!-- PERFIL -->
         <a routerLink="/perfil" routerLinkActive="active">
             <i class="pi pi-user"></i>
             <span>Perfil</span>
         </a>
 
-        <a *ngIf="canViewGroups"
+        <!-- GROUPS -->
+        <a *ifHasPermission="'group:add'"
            routerLink="/groups"
            routerLinkActive="active">
+
             <i class="pi pi-users"></i>
             <span>Groups</span>
+
         </a>
 
-        <a *ngIf="canViewUsers"
+        <!-- USERS -->
+        <a *ifHasPermission="'users:add'"
            routerLink="/usuarios"
            routerLinkActive="active">
+
             <i class="pi pi-user-edit"></i>
             <span>Usuarios</span>
-        </a>
 
-        <a *ngIf="canViewTickets"
-           routerLink="/ticket"
-           routerLinkActive="active">
-            <i class="pi pi-ticket"></i>
-            <span>Tickets</span>
-        </a>
-
-        <a *ngIf="canViewSettings"
-           routerLink="/settings"
-           routerLinkActive="active">
-            <i class="pi pi-cog"></i>
-            <span>Configuración</span>
         </a>
 
     </nav>

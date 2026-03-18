@@ -1,0 +1,92 @@
+/* CONFIGURACIÓN DEL DRAWER */
+:host ::ng-deep .ticket-drawer-modern.p-drawer {
+    width: 500px !important; /* Un ancho fijo pero generoso */
+    background-color: #111827 !important;
+    border-left: 1px solid #374151;
+}
+
+:host ::ng-deep .p-drawer-content { padding: 0 !important; overflow: hidden !important; }
+
+.drawer-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* HEADER */
+.drawer-header {
+    padding: 1.5rem;
+    background: #1f2937;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.id-badge { background: #3b82f6; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; margin-bottom: 5px; display: inline-block; }
+.main-title { margin: 0; font-size: 1.25rem; color: #fff; }
+
+/* BODY */
+.drawer-body {
+    flex: 1;
+    padding: 1.5rem;
+    overflow-y: auto; /* Solo un scroll aquí */
+}
+
+/* GRID DE METADATOS (Alineado) */
+.metadata-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.meta-item label, .description-section label {
+    display: block;
+    color: #9ca3af;
+    font-size: 0.7rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.user-chip {
+    background: #374151;
+    padding: 0.5rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ELEMENTOS FLUIDOS */
+.fluid-select, .fluid-textarea {
+    width: 100% !important;
+    background: #1f2937 !important;
+    border: 1px solid #4b5563 !important;
+    color: white !important;
+}
+
+.divider { border: 0; border-top: 1px solid #374151; margin: 1.5rem 0; }
+
+/* FEED DE COMENTARIOS */
+.comment-feed { margin-top: 1.5rem; }
+.feed-item { display: flex; gap: 1rem; margin-bottom: 1rem; }
+.avatar-circle { 
+    width: 32px; height: 32px; background: #6366f1; border-radius: 50%; 
+    display: flex; align-items: center; justify-content: center; font-weight: bold;
+}
+.feed-header small { color: #6b7280; margin-left: 10px; }
+.feed-text p { margin: 4px 0 0 0; color: #d1d5db; font-size: 0.9rem; }
+
+/* FOOTER */
+.drawer-footer {
+    padding: 1rem 1.5rem;
+    background: #1f2937;
+    font-size: 0.8rem;
+    color: #9ca3af;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* BOTONES */
+:host ::ng-deep .btn-save { background: #10b981 !important; border: none !important; }
+:host ::ng-deep .btn-close { color: #9ca3af !important; }

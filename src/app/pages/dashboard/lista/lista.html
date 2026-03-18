@@ -1,0 +1,194 @@
+<div class="lista-container">
+
+  <div class="filtros-bar">
+    <i class="pi pi-filter text-gray-400"></i>
+    <span class="filtros-label">Filtros rápidos:</span>
+    <button 
+      *ngFor="let filtro of filtrosDisponibles"
+      class="filtro-btn" 
+      [class.active]="filtroActivo === filtro"
+      (click)="aplicarFiltroRapido(filtro)">
+      {{ filtro }}
+    </button>
+  </div>
+
+  <div class="table-card">
+    
+    <p-table 
+      #dt 
+      [value]="ticketsMostrados" 
+      [paginator]="true" 
+      [rows]="10"
+      [globalFilterFields]="['id', 'titulo', 'asignado', 'estado']"
+      styleClass="custom-table"
+      [rowHover]="true">
+      
+      <ng-template pTemplate="caption">
+        <div class="table-header-custom">
+          <h3>Listado de Tickets</h3>
+          <span class="search-wrapper">
+            <i class="pi pi-search"></i>
+            <input 
+              pInputText 
+              type="text" 
+              (input)="dt.filterGlobal($any($event.target).value, 'contains')" 
+              placeholder="Buscar..." />
+          </span>
+        </div>
+      </ng-template>
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 3rem">
+            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+          </th>
+          <th pSortableColumn="id">ID <p-sortIcon field="id"></p-sortIcon></th>
+          <th pSortableColumn="titulo">Titulo <p-sortIcon field="titulo"></p-sortIcon></th>
+          
+          <th>
+            <div class="flex flex-column align-items-start gap-2">
+              <span pSortableColumn="estado" style="cursor: pointer;">
+                Estado <p-sortIcon field="estado"></p-sortIcon>
+              </span>
+                <p-columnFilter field="estado" matchMode="equals" [showMenu]="false">
+                    <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                        
+                        <p-select 
+                        [ngModel]="value" 
+                        [options]="estadosDisponibles" 
+                        (onChange)="filter($any($event).value)" 
+                        placeholder="Filtrar Estado" 
+                        [style]="{'min-width': '140px'}"
+                        appendTo="body">
+                        </p-select>
+
+                    </ng-template>
+                </p-columnFilter>
+            </div>
+          </th>
+
+          <th pSortableColumn="asignado">Asignado <p-sortIcon field="asignado"></p-sortIcon></th>
+          <th pSortableColumn="prioridad">Prioridad <p-sortIcon field="prioridad"></p-sortIcon></th>
+          <th pSortableColumn="fechaLimite">Fecha Límite <p-sortIcon field="fechaLimite"></p-sortIcon></th>
+          <th>Acciones</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-ticket>
+        <tr>
+          <td>
+            <p-tableCheckbox [value]="ticket"></p-tableCheckbox>
+          </td>
+          <td class="text-gray-400">{{ ticket.id }}</td>
+          <td class="font-bold">{{ ticket.titulo }}</td>
+          <td>
+            <p-tag [value]="ticket.estado" [severity]="getSeverity(ticket.estado)"></p-tag>
+          </td>
+          <td>{{ ticket.asignado || 'Sin asignar' }}</td>
+          <td>{{ ticket.prioridad }}</td>
+          <td class="text-gray-400">{{ ticket.fechaLimite }}</td>
+          
+          <td>
+            <div class="action-buttons">
+
+              <button 
+                pButton 
+                icon="pi pi-eye" 
+                class="p-button-rounded p-button-text text-gray-400 hover:text-white" 
+                pTooltip="Ver detalles"
+                (click)="verDetallesTicket(ticket)">
+              </button>
+
+              <button 
+                *ngIf="canEdit" 
+                pButton 
+                icon="pi pi-pencil" 
+                class="p-button-rounded p-button-outlined action-btn edit-btn" 
+                (click)="editarTicket(ticket)">
+              </button>
+              
+              <button 
+                *ngIf="canDelete" 
+                pButton 
+                icon="pi pi-trash" 
+                class="p-button-rounded p-button-outlined action-btn delete-btn" 
+                (click)="eliminarTicket(ticket)">
+              </button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="8" class="text-center p-4 text-gray-400">No se encontraron tickets.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+
+  </div>
+</div>
+
+<p-dialog 
+  header="Editar Ticket: {{ ticketEditando.id }}" 
+  [(visible)]="mostrarModal" 
+  [modal]="true" 
+  [style]="{ width: '450px' }" 
+  styleClass="custom-dialog"
+  [draggable]="false" 
+  [resizable]="false">
+
+  <div class="flex flex-column gap-3 mt-3">
+    
+    <div class="field-group">
+      <label for="titulo" class="font-semibold block mb-2">Título</label>
+      <input pInputText id="titulo" [(ngModel)]="ticketEditando.titulo" class="w-full" />
+    </div>
+
+    <div class="field-group">
+      <label for="asignado" class="font-semibold block mb-2">Asignado a</label>
+      <input pInputText id="asignado" [(ngModel)]="ticketEditando.asignado" class="w-full" placeholder="Ej: Jonathan" />
+    </div>
+
+    <div class="flex gap-3 w-full">
+      <div class="field-group flex-1">
+        <label for="estado" class="font-semibold block mb-2">Estado</label>
+        <p-select 
+          [options]="estadosSinNulo" 
+          [(ngModel)]="ticketEditando.estado" 
+          appendTo="body"
+          [style]="{'width':'100%'}">
+        </p-select>
+      </div>
+
+      <div class="field-group flex-1">
+        <label for="prioridad" class="font-semibold block mb-2">Prioridad</label>
+        <p-select 
+          [options]="prioridades" 
+          [(ngModel)]="ticketEditando.prioridad" 
+          appendTo="body"
+          [style]="{'width':'100%'}">
+        </p-select>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label for="fecha" class="font-semibold block mb-2">Fecha Límite</label>
+      <input pInputText type="date" id="fecha" [(ngModel)]="ticketEditando.fechaLimite" class="w-full" />
+    </div>
+
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="flex justify-content-end gap-2 mt-4">
+      <p-button label="Cancelar" icon="pi pi-times" [outlined]="true" severity="secondary" (onClick)="cerrarModal()"></p-button>
+      <p-button label="Guardar" icon="pi pi-check" severity="success" (onClick)="guardarEdicion()"></p-button>
+    </div>
+  </ng-template>
+
+</p-dialog>
+
+<app-detalle-ticket 
+  [(visible)]="panelDetalleVisible" 
+  [ticket]="ticketSeleccionadoParaDetalle">
+</app-detalle-ticket>
