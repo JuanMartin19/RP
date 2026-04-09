@@ -1,30 +1,35 @@
+// src/app/pages/auth/register/register.ts
 import { Component } from '@angular/core';
-import { ReactiveFormsModule, FormGroup, FormControl } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { PrimeImportsModule } from "../../../prime-imports";
+import { AuthService } from '../../../services/auth.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [PrimeImportsModule, RouterLink, ReactiveFormsModule],
+  imports: [PrimeImportsModule, RouterLink, ReactiveFormsModule, CommonModule],
   templateUrl: './register.html',
   styleUrl: './register.css',
 })
 export class Register {
 
   registerForm = new FormGroup({
-    usuario: new FormControl(''),
-    email: new FormControl(''),
-    password: new FormControl(''),
-    confirmPassword: new FormControl(''),
-    nombre: new FormControl(''),
-    direccion: new FormControl(''),
-    telefono: new FormControl(''),
-    nacimiento: new FormControl<Date | null>(null),
+    usuario: new FormControl('', [Validators.required, Validators.minLength(4)]),
+    email: new FormControl('', [Validators.required, Validators.email]),
+    password: new FormControl('', [Validators.required, Validators.minLength(6)]),
+    confirmPassword: new FormControl('', [Validators.required]),
+    nombre: new FormControl('', [Validators.required]),
+    direccion: new FormControl('', [Validators.required]),
+    telefono: new FormControl('', [Validators.required, Validators.minLength(10)]),
+    nacimiento: new FormControl<Date | null>(null, [Validators.required, validarMayoriaEdad as any]),
   });
 
   mensaje = '';
-  tipoMensaje: 'success' | 'error' | null = null;
+  tipoMensaje: 'success' | 'error' | 'info' | 'warn' | null = null;
+
+  constructor(private authSvc: AuthService, private router: Router) {}
 
   limitarTelefono(event: any) {
     let valor = event.target.value.replace(/[^0-9]/g, '');
@@ -34,75 +39,62 @@ export class Register {
   }
 
   registrar() {
-    // 0. LIMPIAR MENSAJES ANTERIORES
     this.mensaje = '';
-    this.tipoMensaje = null;
-
     const v = this.registerForm.value;
 
-    // 1. Validar que todos los campos estén llenos
-    if (!v.usuario || !v.email || !v.password || !v.confirmPassword || 
-        !v.nombre || !v.direccion || !v.telefono || !v.nacimiento) {
+    // 1. VALIDACIÓN DE EDAD ESPECÍFICA
+    if (this.registerForm.get('nacimiento')?.hasError('menorDeEdad')) {
       this.tipoMensaje = 'error';
-      this.mensaje = 'Todos los campos son obligatorios';
+      this.mensaje = 'Debes ser mayor de edad.';
       return;
     }
 
-    // 2. Validar usuario
-    if (v.usuario.length < 4) {
+    // 2. VALIDACIÓN GENERAL
+    if (this.registerForm.invalid) {
       this.tipoMensaje = 'error';
-      this.mensaje = 'El usuario debe tener al menos 4 caracteres';
-      return;
-    }
-
-    // 3. Validar correo
-    const dominios = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com'];
-    const dominio = v.email.split('@')[1]?.toLowerCase();
-    if (!dominio || !dominios.includes(dominio)) {
-        this.tipoMensaje = 'error';
-        this.mensaje = 'El correo debe ser válido (Gmail, Hotmail, Outlook o Yahoo)';
-        return;
-    }
-
-    // 4. Validar contraseña
-    const regex = /^(?=.*[!@#$%^&*(),.?":{}|<>]).{10,}$/;
-    if (!regex.test(v.password || '')) {
-      this.tipoMensaje = 'error';
-      this.mensaje = 'La contraseña debe tener mínimo 10 caracteres y un símbolo especial';
+      this.mensaje = 'Rellena todos los campos.';
       return;
     }
 
     if (v.password !== v.confirmPassword) {
       this.tipoMensaje = 'error';
-      this.mensaje = 'Las contraseñas no coinciden';
+      this.mensaje = 'Las contraseñas no coinciden.';
       return;
     }
 
-    // 5. Validar teléfono EXACTO (10 dígitos)
-    if (!v.telefono || v.telefono.length !== 10) {
-      this.tipoMensaje = 'error';
-      this.mensaje = 'El teléfono debe tener exactamente 10 dígitos';
-      return;
-    }
+    // 3. ESTADO DE CARGA E INTENTO DE REGISTRO
+    this.tipoMensaje = 'info';
+    this.mensaje = 'Procesando...';
 
-    // 6. Validar mayor de edad (ÚLTIMO PASO)
-    const hoy = new Date();
-    const fechaNac = new Date(v.nacimiento); // Aseguramos que sea objeto Date
-    let edad = hoy.getFullYear() - fechaNac.getFullYear();
-    const mesDiferencia = hoy.getMonth() - fechaNac.getMonth();
-    
-    if (mesDiferencia < 0 || (mesDiferencia === 0 && hoy.getDate() < fechaNac.getDate())) {
-        edad--;
-    }
-    
-    if (edad < 18) {
+    this.authSvc.register(v).subscribe({
+      next: (res) => {
+        this.tipoMensaje = 'success';
+        this.mensaje = '¡Cuenta creada!';
+        setTimeout(() => this.router.navigate(['/login']), 1500);
+      },
+      error: (err) => {
         this.tipoMensaje = 'error';
-        this.mensaje = 'Debes ser mayor de edad para registrarte';
-        return;
-    }
-
-    // Si todo pasa:
-    this.tipoMensaje = 'success';
-    this.mensaje = 'Registro exitoso';
+        // Captura el mensaje directo y corto del backend
+        this.mensaje = err.error?.data?.message || 'Error de conexión.';
+      }
+    });
   }
+}
+
+/**
+ * Validador para asegurar que el usuario tenga al menos 18 años
+ */
+function validarMayoriaEdad(control: FormControl) {
+  if (!control.value) return null;
+  const fechaNacimiento = new Date(control.value);
+  const hoy = new Date();
+  let edad = hoy.getFullYear() - fechaNacimiento.getFullYear();
+  const mes = hoy.getMonth() - fechaNacimiento.getMonth();
+  
+  if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNacimiento.getDate())) {
+    edad--;
+  }
+  
+  // Retorna error si es menor de 18 o si la fecha es hoy/futura
+  return edad < 18 ? { menorDeEdad: true } : null;
 }

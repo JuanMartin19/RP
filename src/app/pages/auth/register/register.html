@@ -50,8 +50,7 @@
             </div>
 
             <p-button label="Registrarse" severity="success" class="w-full" (click)="registrar()" />
-
-            <p-message *ngIf="mensaje" [severity]="tipoMensaje || 'info'" [text]="mensaje" />
+            <p-message *ngIf="mensaje" [severity]="tipoMensaje === 'error' ? 'error' : 'success'" [text]="mensaje" />
 
             <div class="text-center">
                 <a routerLink="/login" class="text-primary no-underline font-medium hover:underline">Ya tengo cuenta</a>

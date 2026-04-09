@@ -1,25 +1,24 @@
+// src/app/app.config.ts
 import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
 import Lara from '@primeuix/themes/lara';
-
-import { HasPermissionDirective } from './directives/has-permission.directive';
-import { PermissionsService } from './services/permissions.service';
+import { provideHttpClient, withInterceptors } from '@angular/common/http'; // <-- Importa withInterceptors
+import { authInterceptor } from '../interceptors/auth.interceptor'; // <-- Importa tu interceptor
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
     provideRouter(routes),
-    PermissionsService,
-    HasPermissionDirective,
+    provideHttpClient(
+      withInterceptors([authInterceptor]) 
+    ),
     provideAnimationsAsync(),
     providePrimeNG({
-      theme: {
-        preset: Lara
-      },
+      theme: { preset: Lara },
     }),
   ],
 };

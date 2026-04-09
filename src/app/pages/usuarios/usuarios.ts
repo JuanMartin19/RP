@@ -19,7 +19,7 @@ export class Usuarios implements OnInit {
   catalogoPermisos = [
     'groups:view', 'group:view', 'group:add', 'group:edit', 'group:delete',
     'users:view', 'user:add', 'user:view:all', 'users:add', 'user:edit', 'users:edit', 'user:delete', 'users:delete',
-    'tickets:view', 'ticket:add', 'ticket:view', 'ticket:edite', 'ticket:edite:state', 'ticket:delete'
+    'tickets:view', 'ticket:add', 'ticket:view', 'ticket:edite', 'ticket:edite:state', 'ticket:delete', "Doritos:HastaLaMuerte"
   ];
 
   // Variables para el PickList
