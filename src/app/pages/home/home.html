@@ -1,44 +1,55 @@
-<div class="dashboard-container">
-  
-  <header class="dashboard-header">
-    <h1>Bienvenido, {{ userName }}</h1>
-    <p>Selecciona un grupo para gestionar sus tickets:</p>
-  </header>
+<div class="home-container p-4">
 
-  <div class="cards-wrapper" *ngIf="canViewGruop">
-    
-    <p-card *ngFor="let grupo of grupos" styleClass="custom-card">
-      
+  <!-- Header -->
+  <div class="mb-5">
+    <h1 class="text-3xl font-bold m-0">Bienvenido, {{ userName }}</h1>
+    <p class="text-surface-400 mt-1 mb-0">Selecciona un grupo para gestionar sus tickets</p>
+  </div>
+
+  <!-- Skeletons mientras carga -->
+  <div *ngIf="loading" class="flex flex-wrap gap-4">
+    <p-skeleton *ngFor="let i of [1,2,3]"
+                width="300px" height="180px" borderRadius="12px" />
+  </div>
+
+  <!-- Lista de grupos -->
+  <div *ngIf="!loading && grupos.length > 0" class="flex flex-wrap gap-4">
+    <p-card *ngFor="let grupo of grupos"
+            styleClass="cursor-pointer group-card"
+            [style]="{ width: '300px' }">
+
       <ng-template pTemplate="title">
-        <div class="card-title">{{ grupo.nombre }}</div>
+        <span class="text-lg font-semibold">{{ grupo.nombre }}</span>
       </ng-template>
-      
+
       <ng-template pTemplate="subtitle">
-        <div class="card-subtitle">{{ grupo.descripcion }}</div>
+        <span class="text-surface-400 text-sm">
+          {{ grupo.descripcion || 'Sin descripción.' }}
+        </span>
       </ng-template>
 
       <ng-template pTemplate="footer">
-        <div class="card-footer">
-          <p-tag
-            [value]="grupo.estado"
-            [styleClass]="'custom-tag ' + grupo.tagClass">
-          </p-tag>
-          
-          <p-button 
-            label="Entrar al Dashboard" 
-            icon="pi pi-external-link" 
-            styleClass="custom-btn"
-            (onClick)="seleccionarGrupo(grupo)">
-          </p-button>
+        <div class="flex justify-content-between align-items-center">
+          <p-tag value="Activo" severity="success" />
+          <p-button label="Entrar" icon="pi pi-arrow-right"
+                    iconPos="right" size="small"
+                    (onClick)="seleccionarGrupo(grupo)" />
         </div>
       </ng-template>
 
     </p-card>
+  </div>
 
-    <div class="nav-arrow">
-      <i class="pi pi-chevron-right text-xl"></i>
-    </div>
-
+  <!-- Sin grupos -->
+  <div *ngIf="!loading && grupos.length === 0"
+       class="flex flex-column align-items-center justify-content-center p-8
+              border-round bg-surface-900 text-center">
+    <i class="pi pi-folder-open text-5xl text-surface-500 mb-3"></i>
+    <h2 class="text-surface-300 mt-0">Sin grupos asignados</h2>
+    <p class="text-surface-400 m-0">
+      Aún no eres miembro de ningún grupo.<br>
+      Contacta a un administrador para que te agregue.
+    </p>
   </div>
 
 </div>

@@ -1,25 +1,50 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class PermissionsService {
 
-  // lista de permisos del usuario
-  private userPermissions = signal<string[]>([]);
+  // Permisos globales — NUNCA se sobreescriben después del login
+  private allPermissionsSubject = new BehaviorSubject<string[] | null>(null);
+  permissions$: Observable<string[] | null> = this.allPermissionsSubject.asObservable();
 
-  // cargar permisos (por ejemplo después del login)
-  setPermissions(perms: string[]) {
-    this.userPermissions.set(perms);
+  // Permisos del grupo activo — solo para uso dentro del dashboard
+  private grupoPermissionsSubject = new BehaviorSubject<string[]>([]);
+  grupoPermissions$: Observable<string[]> = this.grupoPermissionsSubject.asObservable();
+
+  setPermissions(permissions: string[]) {
+    this.allPermissionsSubject.next(permissions);
   }
 
-  // verificar permiso simple
-  hasPermission(permiso: string): boolean {
-    return this.userPermissions().includes(permiso);
+  // Solo actualiza los permisos del grupo — NO toca los globales
+  refreshPermissionsForGroup(grupoId: string | number, permisosPorGrupo: Record<string, string[]>) {
+    const permisos = permisosPorGrupo[String(grupoId)] || [];
+    this.grupoPermissionsSubject.next(permisos);
   }
 
-  // verificar si tiene alguno de varios permisos
-  hasAnyPermission(perms: string[]): boolean {
-    return perms.some(p => this.hasPermission(p));
+  // Usa permisos GLOBALES — para sidebar y rutas
+  hasPermission(permission: string): boolean {
+    const current = this.allPermissionsSubject.value;
+    return current ? current.includes(permission) : false;
+  }
+
+  hasAnyPermission(requiredPermissions: string[]): boolean {
+    const current = this.allPermissionsSubject.value;
+    if (!current) return false;
+    return requiredPermissions.some(p => current.includes(p));
+  }
+
+  // Usa permisos del GRUPO ACTIVO — para botones dentro del dashboard
+  hasGrupoPermission(permission: string): boolean {
+    return this.grupoPermissionsSubject.value.includes(permission);
+  }
+
+  isLoaded(): boolean {
+    return this.allPermissionsSubject.value !== null;
+  }
+
+  clearPermissions() {
+    this.allPermissionsSubject.next(null);
+    this.grupoPermissionsSubject.next([]);
   }
 }

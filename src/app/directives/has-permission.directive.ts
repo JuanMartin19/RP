@@ -6,7 +6,7 @@ import { PermissionsService } from '../services/permissions.service';
   standalone: true
 })
 export class HasPermissionDirective implements OnInit {
-@Input ('ifHasPermission') permisos: string | string[] = '';
+  @Input('ifHasPermission') permisos: string | string[] = '';
 
   constructor(
     private permissionsSvc: PermissionsService,
@@ -17,9 +17,11 @@ export class HasPermissionDirective implements OnInit {
   ngOnInit() {
     const permisosArray = Array.isArray(this.permisos) ? this.permisos : [this.permisos];
 
+    // Usa hasAnyPermission que lee los permisos GLOBALES
     if (this.permissionsSvc.hasAnyPermission(permisosArray)) {
       this.viewContainer.createEmbeddedView(this.templateRef);
+    } else {
+      this.viewContainer.clear();
     }
   }
-
 }

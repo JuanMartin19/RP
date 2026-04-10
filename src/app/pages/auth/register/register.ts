@@ -1,6 +1,5 @@
-// src/app/pages/auth/register/register.ts
 import { Component } from '@angular/core';
-import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormGroup, FormControl, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { PrimeImportsModule } from "../../../prime-imports";
 import { AuthService } from '../../../services/auth.service';
@@ -16,20 +15,40 @@ import { CommonModule } from '@angular/common';
 export class Register {
 
   registerForm = new FormGroup({
+    nombre: new FormControl('', [Validators.required]),
     usuario: new FormControl('', [Validators.required, Validators.minLength(4)]),
     email: new FormControl('', [Validators.required, Validators.email]),
     password: new FormControl('', [Validators.required, Validators.minLength(6)]),
     confirmPassword: new FormControl('', [Validators.required]),
-    nombre: new FormControl('', [Validators.required]),
-    direccion: new FormControl('', [Validators.required]),
-    telefono: new FormControl('', [Validators.required, Validators.minLength(10)]),
-    nacimiento: new FormControl<Date | null>(null, [Validators.required, validarMayoriaEdad as any]),
+    direccion: new FormControl(''),
+    telefono: new FormControl('', [Validators.minLength(10)]),
+    nacimiento: new FormControl<Date | null>(null, [Validators.required, this.validarMayoriaEdad])
   });
 
   mensaje = '';
   tipoMensaje: 'success' | 'error' | 'info' | 'warn' | null = null;
+  cargando = false;
+
+  fechaMaxNacimiento: Date = (() => {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() - 18);
+    return d;
+  })();
 
   constructor(private authSvc: AuthService, private router: Router) {}
+
+  // Validador estático — no necesita bind
+  validarMayoriaEdad(control: AbstractControl): ValidationErrors | null {
+    if (!control.value) return null;
+    const fechaNacimiento = new Date(control.value);
+    const hoy = new Date();
+    let edad = hoy.getFullYear() - fechaNacimiento.getFullYear();
+    const mes = hoy.getMonth() - fechaNacimiento.getMonth();
+    if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNacimiento.getDate())) {
+      edad--;
+    }
+    return edad < 18 ? { menorDeEdad: true } : null;
+  }
 
   limitarTelefono(event: any) {
     let valor = event.target.value.replace(/[^0-9]/g, '');
@@ -38,23 +57,27 @@ export class Register {
     this.registerForm.patchValue({ telefono: valor });
   }
 
+  // Helpers para el HTML
+  campo(nombre: string) {
+    return this.registerForm.get(nombre);
+  }
+
+  campoInvalido(nombre: string): boolean {
+    const c = this.campo(nombre);
+    return !!(c?.invalid && c?.touched);
+  }
+
   registrar() {
     this.mensaje = '';
-    const v = this.registerForm.value;
+    this.registerForm.markAllAsTouched();
 
-    // 1. VALIDACIÓN DE EDAD ESPECÍFICA
-    if (this.registerForm.get('nacimiento')?.hasError('menorDeEdad')) {
-      this.tipoMensaje = 'error';
-      this.mensaje = 'Debes ser mayor de edad.';
-      return;
-    }
-
-    // 2. VALIDACIÓN GENERAL
     if (this.registerForm.invalid) {
       this.tipoMensaje = 'error';
-      this.mensaje = 'Rellena todos los campos.';
+      this.mensaje = 'Rellena todos los campos obligatorios correctamente.';
       return;
     }
+
+    const v = this.registerForm.value;
 
     if (v.password !== v.confirmPassword) {
       this.tipoMensaje = 'error';
@@ -62,39 +85,30 @@ export class Register {
       return;
     }
 
-    // 3. ESTADO DE CARGA E INTENTO DE REGISTRO
+    this.cargando = true;
     this.tipoMensaje = 'info';
-    this.mensaje = 'Procesando...';
+    this.mensaje = 'Procesando registro...';
 
-    this.authSvc.register(v).subscribe({
-      next: (res) => {
+    // nacimiento NO se envía al backend — solo fue validación local
+    this.authSvc.register({
+      nombre: v.nombre,
+      usuario: v.usuario,
+      email: v.email,
+      password: v.password,
+      direccion: v.direccion,
+      telefono: v.telefono
+    }).subscribe({
+      next: () => {
+        this.cargando = false;
         this.tipoMensaje = 'success';
-        this.mensaje = '¡Cuenta creada!';
-        setTimeout(() => this.router.navigate(['/login']), 1500);
+        this.mensaje = '¡Cuenta creada con éxito! Redirigiendo al login...';
+        setTimeout(() => this.router.navigate(['/login']), 2000);
       },
       error: (err) => {
+        this.cargando = false;
         this.tipoMensaje = 'error';
-        // Captura el mensaje directo y corto del backend
-        this.mensaje = err.error?.data?.message || 'Error de conexión.';
+        this.mensaje = err.error?.data?.message || 'Error al registrar usuario.';
       }
     });
   }
-}
-
-/**
- * Validador para asegurar que el usuario tenga al menos 18 años
- */
-function validarMayoriaEdad(control: FormControl) {
-  if (!control.value) return null;
-  const fechaNacimiento = new Date(control.value);
-  const hoy = new Date();
-  let edad = hoy.getFullYear() - fechaNacimiento.getFullYear();
-  const mes = hoy.getMonth() - fechaNacimiento.getMonth();
-  
-  if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNacimiento.getDate())) {
-    edad--;
-  }
-  
-  // Retorna error si es menor de 18 o si la fecha es hoy/futura
-  return edad < 18 ? { menorDeEdad: true } : null;
 }

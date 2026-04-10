@@ -1,4 +1,3 @@
-// src/app/services/ticket.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -6,25 +5,54 @@ import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class TicketService {
-  // Usamos template strings para evitar errores de concatenación accidental
+
   private apiUrl = `${environment.apiUrl}/tickets`;
 
   constructor(private http: HttpClient) {}
 
-  // Tipamos con Observable<any> para que Angular sepa que es una petición asíncrona
-  getTicketsByGroup(grupoId: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/group/${grupoId}`);
+  getTicketsByGroup(grupoId: string | number, filtros?: {
+    estado?: string;
+    prioridad?: string;
+    asignado_id?: number;
+  }): Observable<any> {
+    let params: any = {};
+    if (filtros?.estado) params['estado'] = filtros.estado;
+    if (filtros?.prioridad) params['prioridad'] = filtros.prioridad;
+    if (filtros?.asignado_id) params['asignado_id'] = filtros.asignado_id;
+    return this.http.get(`${this.apiUrl}/group/${grupoId}`, { params });
   }
 
-  createTicket(ticket: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/create`, ticket);
+  getTicketById(id: string | number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/${id}`);
   }
 
-  updateTicket(id: string, data: any) {
-    return this.http.patch(`${this.apiUrl}/edit/${id}`, data);
+  createTicket(ticket: {
+    grupo_id: number;
+    titulo: string;
+    descripcion?: string;
+    prioridad?: string;
+    asignado_id?: number;
+  }): Observable<any> {
+    return this.http.post(`${this.apiUrl}`, ticket);
   }
 
-  deleteTicket(id: string) {
-    return this.http.delete(`${this.apiUrl}/delete/${id}`);
+  updateTicket(id: string | number, data: any): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${id}`, data);
+  }
+
+  changeStatus(id: string | number, estado: string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${id}/status`, { estado });
+  }
+
+  deleteTicket(id: string | number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}`);
+  }
+
+  addComment(ticketId: string | number, texto: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${ticketId}/comments`, { texto });
+  }
+
+  deleteComment(ticketId: string | number, comentarioId: string | number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${ticketId}/comments/${comentarioId}`);
   }
 }

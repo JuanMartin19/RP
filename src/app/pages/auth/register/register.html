@@ -1,60 +1,124 @@
 <div class="flex justify-content-center align-items-center min-h-screen p-4">
-    <p-card styleClass="w-full max-w-30rem">
-        <ng-template pTemplate="header">
-            <div class="p-4 pb-0"><h2 class="text-2xl font-bold m-0 text-surface-0">Crear Cuenta</h2></div>
-        </ng-template>
+  <p-card styleClass="w-full max-w-30rem">
 
-        <form [formGroup]="registerForm" class="flex flex-column gap-4 pt-3">
+    <ng-template pTemplate="header">
+      <div class="p-4 pb-0">
+        <p-button icon="pi pi-arrow-left" label="Regresar" severity="secondary"
+                  variant="text" routerLink="/login" />
+        <h1 class="text-2xl font-bold mt-3 mb-0">Crear Cuenta</h1>
+      </div>
+    </ng-template>
 
-            <p-floatLabel variant="on">
-                <input pInputText id="usuario" class="w-full" formControlName="usuario" />
-                <label for="usuario">Usuario</label>
-            </p-floatLabel>
+    <form [formGroup]="registerForm" class="flex flex-column gap-4 pt-3"
+          (submit)="$event.preventDefault()">
 
-            <p-floatLabel variant="on">
-                <input pInputText id="email" class="w-full" formControlName="email" />
-                <label for="email">Correo</label>
-            </p-floatLabel>
+      <!-- Nombre -->
+      <div class="flex flex-column gap-1">
+        <p-floatLabel variant="on">
+          <input pInputText id="nombre" class="w-full" formControlName="nombre" />
+          <label for="nombre">Nombre completo *</label>
+        </p-floatLabel>
+        <small class="text-red-400" *ngIf="campoInvalido('nombre')">
+          El nombre es obligatorio.
+        </small>
+      </div>
 
-            <p-floatLabel variant="on">
-                <p-password id="password" styleClass="w-full" inputStyleClass="w-full" [toggleMask]="true" [feedback]="true" formControlName="password">
-                </p-password>
-                <label for="password">Contraseña</label>
-            </p-floatLabel>
+      <!-- Usuario -->
+      <div class="flex flex-column gap-1">
+        <p-floatLabel variant="on">
+          <input pInputText id="usuario" class="w-full" formControlName="usuario" />
+          <label for="usuario">Usuario *</label>
+        </p-floatLabel>
+        <small class="text-red-400" *ngIf="campoInvalido('usuario')">
+          Mínimo 4 caracteres.
+        </small>
+      </div>
 
-            <p-floatLabel variant="on">
-                <p-password id="confirmPassword" styleClass="w-full" inputStyleClass="w-full" [toggleMask]="true" [feedback]="false" formControlName="confirmPassword">
-                </p-password>
-                <label for="confirmPassword">Confirmar contraseña</label>
-            </p-floatLabel>
+      <!-- Email -->
+      <div class="flex flex-column gap-1">
+        <p-floatLabel variant="on">
+          <input pInputText id="email" class="w-full" formControlName="email" />
+          <label for="email">Correo electrónico *</label>
+        </p-floatLabel>
+        <small class="text-red-400" *ngIf="campoInvalido('email')">
+          Ingresa un correo válido.
+        </small>
+      </div>
 
-            <p-floatLabel variant="on">
-                <input pInputText id="nombre" class="w-full" formControlName="nombre" />
-                <label for="nombre">Nombre completo</label>
-            </p-floatLabel>
+      <!-- Password -->
+      <div class="flex flex-column gap-1">
+        <p-floatLabel variant="on">
+          <p-password id="password" styleClass="w-full" inputStyleClass="w-full"
+                      [toggleMask]="true" [feedback]="true" formControlName="password" />
+          <label for="password">Contraseña *</label>
+        </p-floatLabel>
+        <small class="text-red-400" *ngIf="campoInvalido('password')">
+          Mínimo 6 caracteres.
+        </small>
+      </div>
 
-            <p-floatLabel variant="on">
-                <input pInputText id="direccion" class="w-full" formControlName="direccion" />
-                <label for="direccion">Dirección</label>
-            </p-floatLabel>
+      <!-- Confirmar password -->
+      <div class="flex flex-column gap-1">
+        <p-floatLabel variant="on">
+          <p-password id="confirmPassword" styleClass="w-full" inputStyleClass="w-full"
+                      [toggleMask]="true" [feedback]="false" formControlName="confirmPassword" />
+          <label for="confirmPassword">Confirmar contraseña *</label>
+        </p-floatLabel>
+        <small class="text-red-400"
+          *ngIf="campo('confirmPassword')?.touched &&
+                 campo('password')?.value !== campo('confirmPassword')?.value">
+          Las contraseñas no coinciden.
+        </small>
+      </div>
 
-            <p-floatLabel variant="on">
-                <input pInputText id="telefono" class="w-full" maxlength="10" 
-                       formControlName="telefono" (input)="limitarTelefono($event)" />
-                <label for="telefono">Teléfono</label>
-            </p-floatLabel>
+      <!-- Dirección -->
+      <p-floatLabel variant="on">
+        <input pInputText id="direccion" class="w-full" formControlName="direccion" />
+        <label for="direccion">Dirección (opcional)</label>
+      </p-floatLabel>
 
-            <div class="flex flex-column gap-2">
-                <label class="text-sm text-surface-400">Fecha de nacimiento</label>
-                <p-datepicker styleClass="w-full" [showIcon]="true" formControlName="nacimiento" />
-            </div>
+      <!-- Teléfono -->
+      <div class="flex flex-column gap-1">
+        <p-floatLabel variant="on">
+          <input pInputText id="telefono" class="w-full" maxlength="10"
+                 formControlName="telefono" (input)="limitarTelefono($event)" />
+          <label for="telefono">Teléfono (opcional)</label>
+        </p-floatLabel>
+        <small class="text-red-400" *ngIf="campoInvalido('telefono')">
+          El teléfono debe tener 10 dígitos.
+        </small>
+      </div>
 
-            <p-button label="Registrarse" severity="success" class="w-full" (click)="registrar()" />
-            <p-message *ngIf="mensaje" [severity]="tipoMensaje === 'error' ? 'error' : 'success'" [text]="mensaje" />
+      <!-- Fecha de nacimiento — solo validación, no va a BD -->
+      <div class="flex flex-column gap-1">
+        <label class="text-sm text-surface-400">Fecha de nacimiento *</label>
+        <p-datepicker styleClass="w-full" [showIcon]="true"
+                      formControlName="nacimiento" appendTo="body"
+                      [maxDate]="fechaMaxNacimiento" />
+        <small class="text-red-400"
+          *ngIf="campo('nacimiento')?.touched && campo('nacimiento')?.hasError('required')">
+          La fecha de nacimiento es obligatoria.
+        </small>
+        <small class="text-red-400"
+          *ngIf="campo('nacimiento')?.touched && campo('nacimiento')?.hasError('menorDeEdad')">
+          Debes ser mayor de 18 años para registrarte.
+        </small>
+      </div>
 
-            <div class="text-center">
-                <a routerLink="/login" class="text-primary no-underline font-medium hover:underline">Ya tengo cuenta</a>
-            </div>
-        </form>
-    </p-card>
+      <!-- Botón -->
+      <p-button label="Registrarse" severity="success" class="w-full"
+                [loading]="cargando" (click)="registrar()" />
+
+      <!-- Mensaje global -->
+      <p-message *ngIf="mensaje" [severity]="tipoMensaje || 'info'"
+                 [text]="mensaje" class="mt-2" />
+
+      <div class="text-center mt-2">
+        <a routerLink="/login" class="text-primary no-underline font-medium hover:underline">
+          Ya tengo cuenta
+        </a>
+      </div>
+
+    </form>
+  </p-card>
 </div>

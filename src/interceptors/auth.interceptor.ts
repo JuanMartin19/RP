@@ -1,20 +1,24 @@
-// src/app/interceptors/auth.interceptor.ts
 import { HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { catchError, throwError } from 'rxjs';
+import { AuthService } from '../app/services/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  // 1. Obtener el token del localStorage
-  const token = localStorage.getItem('token');
+  const router = inject(Router);
+  const authSvc = inject(AuthService);
+  const token = authSvc.getToken();
 
-  // 2. Si el token existe, clonamos la petición y le agregamos el header
-  if (token) {
-    const cloned = req.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`
+  const authReq = token
+    ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
+    : req;
+
+  return next(authReq).pipe(
+    catchError((error) => {
+      if (error.status === 401) {
+        authSvc.logout();
       }
-    });
-    return next(cloned);
-  }
-
-  // 3. Si no hay token (como en el Login), la petición pasa normal
-  return next(req);
+      return throwError(() => error);
+    })
+  );
 };

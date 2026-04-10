@@ -1,5 +1,8 @@
 <div class="groups-container">
 
+  <p-toast />
+
+  <!-- Stat card -->
   <div class="stat-wrapper">
     <div class="stat-card">
       <div class="stat-number">{{ groups.length }}</div>
@@ -7,26 +10,32 @@
     </div>
   </div>
 
+  <!-- Tabla -->
   <div class="table-container">
     <p-toolbar styleClass="custom-toolbar">
       <div class="p-toolbar-group-start gap-3">
-        <p-button *ngIf="canAdd" label="New" icon="pi pi-plus" styleClass="custom-blue-btn" (onClick)="openNew()"></p-button>
-        <p-button *ngIf="canDelete" label="Delete" icon="pi pi-trash" styleClass="custom-danger-outline-btn" [disabled]="!selectedGroups.length" (onClick)="deleteSelectedGroups()"></p-button>
-      </div>
-      <div class="p-toolbar-group-end gap-3">
-        <p-button label="Import" icon="pi pi-plus" styleClass="custom-blue-btn" [outlined]="true"></p-button>
-        <p-button label="Export" icon="pi pi-upload" severity="secondary" styleClass="custom-secondary-outline-btn" [outlined]="true"></p-button>
+        <p-button *ngIf="canAdd" label="Nuevo" icon="pi pi-plus"
+                  severity="success" (onClick)="openNew()" />
+        <p-button *ngIf="canDelete" label="Eliminar selección" icon="pi pi-trash"
+                  severity="danger" [outlined]="true"
+                  [disabled]="!selectedGroups.length"
+                  (onClick)="deleteSelectedGroups()" />
       </div>
     </p-toolbar>
 
-    <p-table 
-      #dt 
+    <!-- Skeleton mientras carga -->
+    <div *ngIf="cargando" class="flex flex-column gap-2 p-4">
+      <p-skeleton height="40px" *ngFor="let i of [1,2,3]" />
+    </div>
+
+    <p-table *ngIf="!cargando"
+      #dt
       [value]="groups"
       [(selection)]="selectedGroups"
       dataKey="id"
       [paginator]="true"
       [rows]="5"
-      [globalFilterFields]="['nombre', 'autor', 'descripcion']"
+      [globalFilterFields]="['nombre', 'descripcion']"
       styleClass="custom-table"
       [rowHover]="true">
 
@@ -35,82 +44,131 @@
           <h3 class="table-title">Gestión de Grupos</h3>
           <span class="search-wrapper">
             <i class="pi pi-search"></i>
-            <input pInputText type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')" placeholder="Buscar..." />
+            <input pInputText type="text"
+                   (input)="dt.filterGlobal($any($event.target).value, 'contains')"
+                   placeholder="Buscar..." />
           </span>
         </div>
       </ng-template>
 
       <ng-template pTemplate="header">
         <tr>
-          <th style="width: 4rem"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
-          <th pSortableColumn="autor">Autor <p-sortIcon field="autor"></p-sortIcon></th>
-          <th pSortableColumn="nombre">Nombre <p-sortIcon field="nombre"></p-sortIcon></th>
-          <th pSortableColumn="integrantes">Integrantes <p-sortIcon field="integrantes"></p-sortIcon></th>
-          <th pSortableColumn="tickets">Tickets <p-sortIcon field="tickets"></p-sortIcon></th>
-          <th pSortableColumn="descripcion">Descripción <p-sortIcon field="descripcion"></p-sortIcon></th>
+          <th style="width: 4rem">
+            <p-tableHeaderCheckbox />
+          </th>
+          <th pSortableColumn="nombre">
+            Nombre <p-sortIcon field="nombre" />
+          </th>
+          <th pSortableColumn="descripcion">
+            Descripción <p-sortIcon field="descripcion" />
+          </th>
+          <th>Creador</th>
+          <th>Creado</th>
+          <th>Acciones</th>
         </tr>
       </ng-template>
 
       <ng-template pTemplate="body" let-group>
-        <tr (click)="editGroup(group)" style="cursor: pointer;">
-          <td><p-tableCheckbox [value]="group" (click)="$event.stopPropagation()"></p-tableCheckbox></td>
-          <td>{{ group.autor }}</td>
-          <td class="font-bold text-white">{{ group.nombre }}</td>
-          <td>{{ group.integrantes }}</td>
-          <td>{{ group.tickets }}</td>
-          <td class="text-gray-400">{{ group.descripcion }}</td>
+        <tr>
+          <td>
+            <p-tableCheckbox [value]="group" (click)="$event.stopPropagation()" />
+          </td>
+          <td class="font-bold">{{ group.nombre }}</td>
+          <td class="text-surface-400">{{ group.descripcion || '—' }}</td>
+          <td>{{ getNombreCreador(group.creador_id) }}</td>
+          <td>{{ group.creado_en | date:'dd/MM/yyyy' }}</td>
+          <td>
+            <div class="flex gap-2">
+              <p-button *ngIf="canEdit" icon="pi pi-pencil" severity="info"
+                        [text]="true" size="small" (onClick)="editGroup(group)"
+                        pTooltip="Editar" />
+              <p-button *ngIf="canManageMembers" icon="pi pi-users" severity="secondary"
+                        [text]="true" size="small" (onClick)="openMembers(group)"
+                        pTooltip="Miembros" />
+              <p-button *ngIf="canDelete" icon="pi pi-trash" severity="danger"
+                        [text]="true" size="small" (onClick)="deleteGroup(group)"
+                        pTooltip="Eliminar" />
+            </div>
+          </td>
         </tr>
       </ng-template>
 
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="6" class="text-center p-4 text-gray-400">No hay grupos registrados</td>
+          <td colspan="6" class="text-center p-4 text-surface-400">
+            No hay grupos registrados.
+          </td>
         </tr>
       </ng-template>
+
     </p-table>
   </div>
 
-  <p-dialog 
-    [(visible)]="groupDialog"
-    [header]="editingId ? 'Editar Grupo' : 'Nuevo Grupo'"
-    [modal]="true"
-    [style]="{ width: '400px' }"
-    [draggable]="false"
-    [resizable]="false"
-    styleClass="custom-dialog">
+  <!-- Dialog crear/editar grupo -->
+  <p-dialog [(visible)]="groupDialog"
+            [header]="editingId ? 'Editar Grupo' : 'Nuevo Grupo'"
+            [modal]="true" [style]="{ width: '420px' }"
+            [draggable]="false" [resizable]="false">
 
     <form [formGroup]="groupForm" class="flex flex-column gap-3 mt-3">
-      <div class="field-group">
-        <label class="block mb-1 text-sm text-gray-400">Nombre del grupo</label>
-        <input pInputText formControlName="nombre" class="w-full custom-input" />
+
+      <div class="flex flex-column gap-1">
+        <label class="text-sm text-surface-400">Nombre del grupo *</label>
+        <input pInputText formControlName="nombre" class="w-full" />
+        <small class="text-red-400"
+          *ngIf="groupForm.get('nombre')?.invalid && groupForm.get('nombre')?.touched">
+          El nombre es obligatorio.
+        </small>
       </div>
 
-      <div class="field-group">
-        <label class="block mb-1 text-sm text-gray-400">Autor</label>
-        <input pInputText formControlName="autor" class="w-full custom-input" />
+      <div class="flex flex-column gap-1">
+        <label class="text-sm text-surface-400">Descripción</label>
+        <textarea pInputTextarea rows="3" formControlName="descripcion"
+                  class="w-full"></textarea>
       </div>
 
-      <div class="flex gap-3">
-        <div class="flex-1">
-          <label class="block mb-1 text-sm text-gray-400">Integrantes</label>
-          <p-inputNumber formControlName="integrantes" class="w-full"></p-inputNumber>
-        </div>
-        <div class="flex-1">
-          <label class="block mb-1 text-sm text-gray-400">Tickets</label>
-          <p-inputNumber formControlName="tickets" class="w-full"></p-inputNumber>
-        </div>
+      <div class="flex justify-content-end gap-2 mt-2">
+        <p-button label="Cancelar" severity="secondary" [outlined]="true"
+                  (onClick)="groupDialog = false" />
+        <p-button label="Guardar" icon="pi pi-check" severity="success"
+                  [loading]="guardando" (onClick)="saveGroup()" />
       </div>
 
-      <div class="field-group">
-        <label class="block mb-1 text-sm text-gray-400">Descripción</label>
-        <textarea pInputTextarea rows="3" formControlName="descripcion" class="w-full custom-input"></textarea>
-      </div>
-
-      <div class="flex justify-content-end gap-2 mt-4">
-        <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="groupDialog=false"></p-button>
-        <p-button label="Guardar" icon="pi pi-check" severity="success" (onClick)="saveGroup()"></p-button>
-      </div>
     </form>
+  </p-dialog>
+
+  <!-- Dialog gestión de miembros -->
+  <p-dialog [(visible)]="memberDialog"
+            [header]="'Miembros: ' + (grupoSeleccionado?.nombre || '')"
+            [modal]="true" [style]="{ width: '500px' }"
+            [draggable]="false" [resizable]="false">
+
+    <!-- Agregar miembro -->
+    <div class="flex gap-2 mb-4">
+      <p-select [options]="todosUsuarios" [(ngModel)]="usuarioSeleccionado"
+                optionLabel="nombre_completo" placeholder="Seleccionar usuario"
+                class="flex-1" />
+      <p-button icon="pi pi-plus" label="Agregar" severity="success"
+                [disabled]="!usuarioSeleccionado" (onClick)="agregarMiembro()" />
+    </div>
+
+    <!-- Lista de miembros -->
+    <div *ngIf="miembros.length === 0" class="text-center text-surface-400 p-3">
+      Sin miembros en este grupo.
+    </div>
+
+    <div *ngFor="let m of miembros"
+         class="flex justify-content-between align-items-center p-2
+                border-bottom-1 border-surface-700">
+      <div class="flex align-items-center gap-2">
+        <i class="pi pi-user text-surface-400"></i>
+        <span>{{ m.usuarios?.nombre_completo || m.usuarios?.username }}</span>
+      </div>
+      <p-button *ngIf="canManageMembers" icon="pi pi-times" severity="danger"
+                [text]="true" size="small"
+                (onClick)="removerMiembro(m.usuarios?.id)" />
+    </div>
+
   </p-dialog>
 
 </div>

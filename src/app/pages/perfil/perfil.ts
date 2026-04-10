@@ -1,7 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { ReactiveFormsModule, FormGroup, FormControl } from '@angular/forms';
+import { ReactiveFormsModule, FormGroup, FormControl, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { PrimeImportsModule } from "../../prime-imports";
+import { AuthService } from '../../services/auth.service';
+import { UsuariosService } from '../../services/usuarios.service';
+import { TicketService } from '../../services/ticket.service';
 
 @Component({
   selector: 'app-perfil',
@@ -12,47 +15,77 @@ import { PrimeImportsModule } from "../../prime-imports";
 })
 export class Perfil implements OnInit {
 
+  usuarioId: number | null = null;
+
+  fechaMaxNacimiento: Date = (() => {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() - 18);
+    return d;
+  })();
+
   perfilForm = new FormGroup({
-    usuario: new FormControl(''),
-    email: new FormControl(''),
+    nombre: new FormControl('', [Validators.required]),
+    usuario: new FormControl('', [Validators.required, Validators.minLength(4)]),
+    email: new FormControl({ value: '', disabled: true }), // email no editable
     password: new FormControl(''),
     confirmPassword: new FormControl(''),
-    nombre: new FormControl(''),
     direccion: new FormControl(''),
-    telefono: new FormControl(''),
-    nacimiento: new FormControl<Date | null>(null),
+    telefono: new FormControl('', [Validators.minLength(10), Validators.maxLength(10)]),
+    nacimiento: new FormControl<Date | null>(null, [this.validarMayoriaEdad])
   });
 
   mensaje = '';
-  tipoMensaje: 'success' | 'error' | null = null;
+  tipoMensaje: 'success' | 'error' | 'info' | null = null;
+  cargando = false;
+  cargandoDatos = true;
 
-  // Datos para las estadísticas de la derecha
   stats = [
-    { titulo: 'Abiertos', valor: 1, class: 'bg-blue' },
-    { titulo: 'En Progreso', valor: 1, class: 'bg-yellow' },
-    { titulo: 'Hechos', valor: 1, class: 'bg-green' }
+    { titulo: 'Pendientes', valor: 0, class: 'bg-blue' },
+    { titulo: 'En Progreso', valor: 0, class: 'bg-yellow' },
+    { titulo: 'Completados', valor: 0, class: 'bg-green' }
   ];
 
-  // Datos para la tabla de tickets
   misTickets: any[] = [];
 
-  ngOnInit() {
-    // Simulación datos cargados del usuario
-    this.perfilForm.patchValue({
-      usuario: 'draken',
-      email: 'jonathan@ejemplo.com',
-      nombre: 'Jonathan',
-      direccion: 'De la Lealtad 23',
-      telefono: '4411625463',
-      nacimiento: new Date(2000, 5, 15) // Fecha simulada para ser > 18
-    });
+  constructor(
+    private authSvc: AuthService,
+    private usuariosSvc: UsuariosService,
+    private ticketSvc: TicketService
+  ) {}
 
-    // Simulación datos para la tabla
-    this.misTickets = [
-      { id: 'TK-101', titulo: 'Corregir API Login', prioridad: 'Alta', estado: 'En progreso' },
-      { id: 'TK-105', titulo: 'Diseño de Perfil', prioridad: 'Media', estado: 'Hecho' },
-      { id: 'TK-110', titulo: 'Testing de Seguridad', prioridad: 'Alta', estado: 'Pendiente' }
-    ];
+  ngOnInit() {
+    const user = this.authSvc.getUser();
+    if (!user) return;
+
+    this.usuarioId = user.id;
+
+    // Cargar datos reales del usuario
+    this.usuariosSvc.getById(user.id).subscribe({
+      next: (res: any) => {
+        const u = res.data;
+        this.perfilForm.patchValue({
+          nombre: u.nombre_completo,
+          usuario: u.username,
+          email: u.email,
+          direccion: u.direccion || '',
+          telefono: u.telefono || ''
+        });
+        this.cargandoDatos = false;
+      },
+      error: () => {
+        this.cargandoDatos = false;
+      }
+    });
+  }
+
+  validarMayoriaEdad(control: AbstractControl): ValidationErrors | null {
+    if (!control.value) return null;
+    const fechaNacimiento = new Date(control.value);
+    const hoy = new Date();
+    let edad = hoy.getFullYear() - fechaNacimiento.getFullYear();
+    const mes = hoy.getMonth() - fechaNacimiento.getMonth();
+    if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNacimiento.getDate())) edad--;
+    return edad < 18 ? { menorDeEdad: true } : null;
   }
 
   limitarTelefono(event: any) {
@@ -62,89 +95,79 @@ export class Perfil implements OnInit {
     this.perfilForm.patchValue({ telefono: valor });
   }
 
-  getPrioridadClass(prio: string): string {
-    if (prio === 'Alta') return 'prio-alta';
-    if (prio === 'Media') return 'prio-media';
-    return 'prio-baja';
+  getPrioridadSeverity(prio: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
+    if (prio === 'Alta') return 'danger';
+    if (prio === 'Media') return 'warn';
+    return 'secondary';
   }
 
-  getEstadoSeverity(estado: string): any {
+  getEstadoSeverity(estado: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
     switch (estado) {
-      case 'Hecho': return 'success';
-      case 'En progreso': return 'info';
-      case 'Pendiente': return 'warning';
+      case 'Completado': return 'success';
+      case 'En Progreso': return 'info';
+      case 'Pendiente': return 'warn';
       default: return 'secondary';
     }
   }
 
   guardarCambios() {
     this.mensaje = '';
-    this.tipoMensaje = null;
+    this.perfilForm.markAllAsTouched();
+
     const v = this.perfilForm.value;
 
-    // 1️⃣ Campos obligatorios (menos contraseña)
-    if (!v.usuario || !v.email || !v.nombre || 
-        !v.direccion || !v.telefono || !v.nacimiento) {
-      this.tipoMensaje = 'error';
-      this.mensaje = 'Todos los campos son obligatorios';
-      return;
-    }
-
-    // 2️⃣ Usuario mínimo 4 caracteres
-    if (v.usuario.length < 4) {
-      this.tipoMensaje = 'error';
-      this.mensaje = 'El usuario debe tener al menos 4 caracteres';
-      return;
-    }
-
-    // 3️⃣ Validar dominio correo
-    const dominios = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'ejemplo.com'];
-    const dominio = v.email.split('@')[1]?.toLowerCase();
-    if (!dominio || !dominios.includes(dominio)) {
-      this.tipoMensaje = 'error';
-      this.mensaje = 'Correo inválido (Gmail, Hotmail, Outlook, Yahoo o ejemplo.com)';
-      return;
-    }
-
-    // 4️⃣ Validar contraseña SOLO si quiere cambiarla
+    // Validar contraseña solo si quiere cambiarla
     if (v.password || v.confirmPassword) {
-      const regex = /^(?=.*[!@#$%^&*(),.?":{}|<>]).{10,}$/;
-      if (!regex.test(v.password || '')) {
+      if ((v.password || '').length < 6) {
         this.tipoMensaje = 'error';
-        this.mensaje = 'La contraseña debe tener mínimo 10 caracteres y un símbolo';
+        this.mensaje = 'La contraseña debe tener mínimo 6 caracteres.';
         return;
       }
       if (v.password !== v.confirmPassword) {
         this.tipoMensaje = 'error';
-        this.mensaje = 'Las contraseñas no coinciden';
+        this.mensaje = 'Las contraseñas no coinciden.';
         return;
       }
     }
 
-    // 5️⃣ Teléfono exacto 10 dígitos
-    if (!v.telefono || v.telefono.length !== 10) {
+    // Validar mayoría de edad si puso fecha
+    if (this.perfilForm.get('nacimiento')?.hasError('menorDeEdad')) {
       this.tipoMensaje = 'error';
-      this.mensaje = 'El teléfono debe tener 10 dígitos';
+      this.mensaje = 'Debes ser mayor de 18 años.';
       return;
     }
 
-    // 6️⃣ Validar mayoría de edad
-    if (v.nacimiento) {
-      const hoy = new Date();
-      const fechaNac = new Date(v.nacimiento);
-      let edad = hoy.getFullYear() - fechaNac.getFullYear();
-      const mesDiff = hoy.getMonth() - fechaNac.getMonth();
-      if (mesDiff < 0 || (mesDiff === 0 && hoy.getDate() < fechaNac.getDate())) {
-        edad--;
-      }
-      if (edad < 18) {
-        this.tipoMensaje = 'error';
-        this.mensaje = 'Debes ser mayor de edad';
-        return;
-      }
-    }
+    if (!this.usuarioId) return;
 
-    this.tipoMensaje = 'success';
-    this.mensaje = 'Perfil actualizado correctamente';
+    const payload: any = {
+      nombre_completo: v.nombre,
+      username: v.usuario,
+      direccion: v.direccion || null,
+      telefono: v.telefono || null
+    };
+
+    this.cargando = true;
+    this.tipoMensaje = 'info';
+    this.mensaje = 'Guardando cambios...';
+
+    this.usuariosSvc.update(this.usuarioId, payload).subscribe({
+      next: () => {
+        this.cargando = false;
+        this.tipoMensaje = 'success';
+        this.mensaje = 'Perfil actualizado correctamente.';
+        // Actualizar cookie del usuario
+        const userActual = this.authSvc.getUser();
+        this.authSvc.setCookie('user', JSON.stringify({
+          ...userActual,
+          nombre_completo: v.nombre,
+          username: v.usuario
+        }), 8);
+      },
+      error: (err) => {
+        this.cargando = false;
+        this.tipoMensaje = 'error';
+        this.mensaje = err.error?.data?.message || 'Error al actualizar perfil.';
+      }
+    });
   }
 }

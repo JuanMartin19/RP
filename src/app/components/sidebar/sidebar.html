@@ -1,57 +1,55 @@
 <div class="sidebar-container h-screen">
 
-    <div class="logo">
-        <i class="pi pi-shield"></i>
-        <span>RP</span>
+  <!-- Logo -->
+  <div class="logo">
+    <i class="pi pi-ticket"></i>
+    <span>ERP Tickets</span>
+  </div>
+
+  <nav class="menu">
+
+    <!-- INICIO -->
+    <a routerLink="/home" routerLinkActive="active">
+      <i class="pi pi-home"></i>
+      <span>Inicio</span>
+    </a>
+
+    <!-- PERFIL -->
+    <a routerLink="/perfil" routerLinkActive="active">
+      <i class="pi pi-user"></i>
+      <span>Perfil</span>
+    </a>
+
+    <!-- GRUPOS — requiere group:manage -->
+    <a *ifHasPermission="'group:manage'"
+    routerLink="/groups"
+    routerLinkActive="active">
+    <i class="pi pi-users"></i>
+    <span>Grupos</span>
+    </a>
+
+    <!-- USUARIOS — requiere user:manage -->
+    <a *ifHasPermission="'user:manage'"
+    routerLink="/usuarios"
+    routerLinkActive="active">
+    <i class="pi pi-user-edit"></i>
+    <span>Usuarios</span>
+    </a>
+
+  </nav>
+
+  <div class="footer">
+
+    <!-- Cerrar sesión — llama al AuthService, no navega directo -->
+    <a (click)="logout()" style="cursor: pointer;">
+      <i class="pi pi-sign-out"></i>
+      <span>Cerrar sesión</span>
+    </a>
+
+    <div class="version">
+      <small>Alpha v0.7.0</small>
     </div>
 
-    <nav class="menu">
-
-        <!-- HOME -->
-        <a routerLink="/home" routerLinkActive="active">
-            <i class="pi pi-home"></i>
-            <span>Inicio</span>
-        </a>
-
-        <!-- PERFIL -->
-        <a routerLink="/perfil" routerLinkActive="active">
-            <i class="pi pi-user"></i>
-            <span>Perfil</span>
-        </a>
-
-        <!-- GROUPS -->
-        <a *ifHasPermission="'group:add'"
-           routerLink="/groups"
-           routerLinkActive="active">
-
-            <i class="pi pi-users"></i>
-            <span>Groups</span>
-
-        </a>
-
-        <!-- USERS -->
-        <a *ifHasPermission="'users:add'"
-           routerLink="/usuarios"
-           routerLinkActive="active">
-
-            <i class="pi pi-user-edit"></i>
-            <span>Usuarios</span>
-
-        </a>
-
-    </nav>
-
-    <div class="footer">
-
-        <a routerLink="/login">
-            <i class="pi pi-sign-out"></i>
-            <span>Cerrar sesión</span>
-        </a>
-
-        <div class="version">
-            <small>Alpha v0.7.0</small>
-        </div>
-
-    </div>
+  </div>
 
 </div>

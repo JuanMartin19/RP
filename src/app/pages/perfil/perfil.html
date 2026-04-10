@@ -1,67 +1,116 @@
 <div class="perfil-layout">
 
+  <!-- Columna izquierda: formulario -->
   <div class="perfil-form-container">
-    
+
     <div class="perfil-header">
-      <h2>Mis datos</h2>
+      <h1>Mi Perfil</h1>
       <p>Gestiona tu información personal</p>
     </div>
 
-    <form [formGroup]="perfilForm" class="form-content">
+    <div *ngIf="cargandoDatos" class="flex flex-column gap-3">
+      <p-skeleton height="40px" borderRadius="8px" />
+      <p-skeleton height="40px" borderRadius="8px" />
+      <p-skeleton height="40px" borderRadius="8px" />
+      <p-skeleton height="40px" borderRadius="8px" />
+    </div>
 
+    <form *ngIf="!cargandoDatos" [formGroup]="perfilForm" class="form-content">
+
+      <!-- Nombre -->
       <div class="input-group">
         <span class="icon"><i class="pi pi-user"></i></span>
-        <input pInputText formControlName="usuario" placeholder="Usuario" />
+        <input pInputText formControlName="nombre" placeholder="Nombre completo" class="w-full" />
       </div>
+      <small class="text-red-400"
+        *ngIf="perfilForm.get('nombre')?.invalid && perfilForm.get('nombre')?.touched">
+        El nombre es obligatorio.
+      </small>
 
+      <!-- Usuario -->
+      <div class="input-group">
+        <span class="icon"><i class="pi pi-at"></i></span>
+        <input pInputText formControlName="usuario" placeholder="Usuario" class="w-full" />
+      </div>
+      <small class="text-red-400"
+        *ngIf="perfilForm.get('usuario')?.invalid && perfilForm.get('usuario')?.touched">
+        Mínimo 4 caracteres.
+      </small>
+
+      <!-- Email (solo lectura) -->
       <div class="input-group">
         <span class="icon"><i class="pi pi-envelope"></i></span>
-        <input pInputText formControlName="email" placeholder="Correo" />
+        <input pInputText formControlName="email" placeholder="Correo" class="w-full" />
       </div>
+      <small class="text-surface-500">El correo no puede modificarse.</small>
 
+      <!-- Nueva contraseña (opcional) -->
       <div class="input-group">
         <span class="icon"><i class="pi pi-lock"></i></span>
-        <p-password formControlName="password" [toggleMask]="true" [feedback]="false" placeholder="Password"></p-password>
+        <p-password formControlName="password" [toggleMask]="true" [feedback]="true"
+                    placeholder="Nueva contraseña (opcional)"
+                    styleClass="w-full" inputStyleClass="w-full" />
       </div>
 
+      <!-- Confirmar contraseña -->
       <div class="input-group">
         <span class="icon"><i class="pi pi-lock"></i></span>
-        <p-password formControlName="confirmPassword" [toggleMask]="true" [feedback]="false" placeholder="Confirmar contraseña"></p-password>
+        <p-password formControlName="confirmPassword" [toggleMask]="true" [feedback]="false"
+                    placeholder="Confirmar contraseña"
+                    styleClass="w-full" inputStyleClass="w-full" />
       </div>
+      <small class="text-red-400"
+        *ngIf="perfilForm.get('confirmPassword')?.touched &&
+               perfilForm.get('password')?.value !== perfilForm.get('confirmPassword')?.value &&
+               perfilForm.get('password')?.value">
+        Las contraseñas no coinciden.
+      </small>
 
-      <div class="input-group">
-        <span class="icon"><i class="pi pi-user"></i></span>
-        <input pInputText formControlName="nombre" placeholder="Nombre" />
-      </div>
-
+      <!-- Dirección -->
       <div class="input-group">
         <span class="icon"><i class="pi pi-map-marker"></i></span>
-        <input pInputText formControlName="direccion" placeholder="Dirección" />
+        <input pInputText formControlName="direccion" placeholder="Dirección (opcional)" class="w-full" />
       </div>
 
+      <!-- Teléfono -->
       <div class="input-group">
         <span class="icon"><i class="pi pi-phone"></i></span>
-        <input pInputText formControlName="telefono" maxlength="10" (input)="limitarTelefono($event)" placeholder="Teléfono" />
+        <input pInputText formControlName="telefono" maxlength="10"
+               (input)="limitarTelefono($event)"
+               placeholder="Teléfono (opcional)" class="w-full" />
       </div>
+      <small class="text-red-400"
+        *ngIf="perfilForm.get('telefono')?.invalid && perfilForm.get('telefono')?.touched">
+        El teléfono debe tener 10 dígitos.
+      </small>
 
+      <!-- Fecha de nacimiento -->
       <div class="extra-fields">
-        <div class="birth-date">
-          <label>Fecha de nacimiento</label>
-          <p-datepicker formControlName="nacimiento" [showIcon]="true" appendTo="body"></p-datepicker>
-        </div>
+        <label class="text-sm text-surface-400">Fecha de nacimiento (verificación de edad)</label>
+        <p-datepicker formControlName="nacimiento" [showIcon]="true"
+                      appendTo="body" styleClass="w-full"
+                      [maxDate]="fechaMaxNacimiento" />
+        <small class="text-red-400"
+          *ngIf="perfilForm.get('nacimiento')?.hasError('menorDeEdad')">
+          Debes ser mayor de 18 años.
+        </small>
       </div>
 
+      <!-- Botón guardar -->
       <div class="actions mt-4">
-        <button pButton label="Guardar cambios" icon="pi pi-save" severity="success" class="w-full" (click)="guardarCambios()"></button>
-        <p-message *ngIf="mensaje" [severity]="tipoMensaje || 'info'" [text]="mensaje" class="mt-2 block w-full"></p-message>
+        <p-button label="Guardar cambios" icon="pi pi-save" severity="success"
+                  class="w-full" [loading]="cargando" (onClick)="guardarCambios()" />
+        <p-message *ngIf="mensaje" [severity]="tipoMensaje || 'info'"
+                   [text]="mensaje" class="mt-2 block w-full" />
       </div>
 
     </form>
   </div>
 
-
+  <!-- Columna derecha: stats y tickets -->
   <div class="perfil-dashboard">
-    
+
+    <!-- Stats -->
     <div class="stats-row">
       <div class="stat-card" *ngFor="let stat of stats" [ngClass]="stat.class">
         <span class="stat-title">{{ stat.titulo }}</span>
@@ -69,16 +118,23 @@
       </div>
     </div>
 
+    <!-- Tabla de tickets -->
     <div class="tickets-table-container">
       <div class="table-header-title">
         <i class="pi pi-list"></i> Mis Tickets Asignados
       </div>
-      
-      <p-table [value]="misTickets" styleClass="custom-table dark-table">
+
+      <div *ngIf="misTickets.length === 0" class="text-center p-4 text-surface-400">
+        <i class="pi pi-inbox text-3xl mb-2 block"></i>
+        No tienes tickets asignados actualmente.
+      </div>
+
+      <p-table *ngIf="misTickets.length > 0" [value]="misTickets"
+               styleClass="custom-table dark-table">
         <ng-template pTemplate="header">
           <tr>
             <th>ID</th>
-            <th>Titulo</th>
+            <th>Título</th>
             <th>Prioridad</th>
             <th>Estado</th>
           </tr>
@@ -88,12 +144,12 @@
             <td class="text-blue">{{ ticket.id }}</td>
             <td>{{ ticket.titulo }}</td>
             <td>
-              <span class="ticket-prio" [ngClass]="getPrioridadClass(ticket.prioridad)">
-                {{ ticket.prioridad }}
-              </span>
+              <p-tag [value]="ticket.prioridad"
+                     [severity]="getPrioridadSeverity(ticket.prioridad)" />
             </td>
             <td>
-              <p-tag [value]="ticket.estado" [severity]="getEstadoSeverity(ticket.estado)"></p-tag>
+              <p-tag [value]="ticket.estado"
+                     [severity]="getEstadoSeverity(ticket.estado)" />
             </td>
           </tr>
         </ng-template>

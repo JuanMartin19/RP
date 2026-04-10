@@ -1,8 +1,9 @@
 import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { PrimeImportsModule } from '../../prime-imports';
 import { CommonModule } from '@angular/common';
 import { HasPermissionDirective } from '../../directives/has-permission.directive';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -17,4 +18,14 @@ import { HasPermissionDirective } from '../../directives/has-permission.directiv
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css',
 })
-export class Sidebar {}
+export class Sidebar {
+
+  constructor(
+    private authSvc: AuthService,
+    private router: Router
+  ) {}
+
+  logout() {
+    this.authSvc.logout();
+  }
+}
