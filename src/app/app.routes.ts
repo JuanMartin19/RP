@@ -78,6 +78,13 @@ export const routes: Routes = [
             loadComponent: () =>
               import('./pages/dashboard/gestion/gestion')
                 .then(m => m.Gestion)
+          },
+          
+          {
+            path: 'ticket',
+            loadComponent: () => 
+              import('./pages/ticket/ticket')
+                .then(m => m.Ticket)
           }
 
         ]
@@ -106,13 +113,6 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/usuarios/usuarios').then(m => m.Usuarios)
       },
-
-      {
-        path: 'ticket',
-        loadComponent: () =>
-          import('./pages/ticket/ticket').then(m => m.Ticket)
-      }
-
     ]
   }
 

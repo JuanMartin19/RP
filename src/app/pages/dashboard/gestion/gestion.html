@@ -1,90 +1,142 @@
 <div class="gestion-container">
+  <p-toast></p-toast>
+  <p-confirmDialog></p-confirmDialog>
 
   <div class="header-section">
     <div>
       <p class="subtitle">Configuración del Espacio</p>
       <h1 class="title">{{ nombreGrupo }}</h1>
+      <p class="text-surface-400 mt-2">{{ descripcionGrupo || 'Sin descripción disponible.' }}</p>
     </div>
     
     <p-button 
       *ngIf="canEditGroup"
-      label="Editar Grupo" 
+      label="Editar Información" 
       icon="pi pi-pencil" 
       styleClass="custom-outline-btn"
-      (onClick)="editarGrupo()">
+      (onClick)="abrirModalEditar()">
     </p-button>
   </div>
 
   <div class="action-box" *ngIf="canAddMember">
-    <p-button 
-      label="Añadir por Email" 
-      icon="pi pi-user-plus" 
-      styleClass="custom-blue-btn">
-    </p-button>
+    <div class="flex flex-column gap-2 w-full">
+       <span class="font-bold text-white mb-2">Administración de Miembros</span>
+       <p-button 
+         label="Añadir Miembro de la Lista" 
+         icon="pi pi-users" 
+         styleClass="custom-blue-btn"
+         (onClick)="abrirModalMiembro()">
+       </p-button>
+    </div>
   </div>
 
   <div class="table-card">
-    
-    <p-table 
-      #dt 
-      [value]="miembros" 
-      [paginator]="true" 
-      [rows]="5" 
-      [globalFilterFields]="['nombre', 'email', 'rol']" 
-      styleClass="custom-table" 
-      [rowHover]="true">
+    <p-table #dt [value]="miembros" [paginator]="true" [rows]="5" [loading]="cargando"
+      [globalFilterFields]="['nombre', 'email', 'rol', 'username']" styleClass="custom-table" [rowHover]="true">
       
       <ng-template pTemplate="caption">
         <div class="table-header">
-          <h3>Miembros del Grupo</h3>
+          <h3>Lista de Acceso</h3>
           <span class="search-wrapper">
             <i class="pi pi-search"></i>
-            <input 
-              pInputText 
-              type="text" 
-              (input)="dt.filterGlobal($any($event.target).value, 'contains')" 
-              placeholder="Buscar miembro..." />
+            <input pInputText type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')" placeholder="Buscar miembro..." />
           </span>
         </div>
       </ng-template>
 
       <ng-template pTemplate="header">
         <tr>
-          <th pSortableColumn="nombre">Nombre <p-sortIcon field="nombre"></p-sortIcon></th>
-          <th pSortableColumn="email">Email <p-sortIcon field="email"></p-sortIcon></th>
-          <th pSortableColumn="rol">Rol <p-sortIcon field="rol"></p-sortIcon></th>
-          <th pSortableColumn="fecha">Fecha Ingreso <p-sortIcon field="fecha"></p-sortIcon></th>
+          <th pSortableColumn="nombre">Usuario <p-sortIcon field="nombre" /></th>
+          <th pSortableColumn="email">Email <p-sortIcon field="email" /></th>
+          <th pSortableColumn="rol">Rol <p-sortIcon field="rol" /></th>
+          <th pSortableColumn="fecha">Miembro desde <p-sortIcon field="fecha" /></th>
           <th>Acciones</th>
         </tr>
       </ng-template>
 
       <ng-template pTemplate="body" let-miembro>
         <tr>
-          <td class="col-nombre">{{ miembro.nombre }}</td>
-          <td class="col-email">{{ miembro.email }}</td>
-          <td>
-            <p-tag [value]="miembro.rol" [severity]="getRolSeverity(miembro.rol)"></p-tag>
+          <td class="col-nombre">
+            <div class="flex flex-column">
+              <span>{{ miembro.nombre }}</span>
+              <small class="text-surface-500">@{{ miembro.username }}</small>
+            </div>
           </td>
+          <td class="col-email">{{ miembro.email }}</td>
+          <td><p-tag [value]="miembro.rol" [severity]="getRolSeverity(miembro.rol)" /></td>
           <td class="col-fecha">{{ miembro.fecha }}</td>
           <td>
-            <button 
-              *ngIf="canDeleteMember"
-              pButton 
-              icon="pi pi-trash" 
-              class="p-button-rounded p-button-outlined action-btn delete-btn" 
-              (click)="eliminarMiembro(miembro)">
-            </button>
+            <p-button *ngIf="canDeleteMember && miembro.rol !== 'Admin'"
+              icon="pi pi-user-minus" styleClass="p-button-rounded p-button-text p-button-danger" 
+              pTooltip="Eliminar del grupo" (onClick)="eliminarMiembro(miembro)" />
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<p-dialog header="Seleccionar Usuario para Añadir" [(visible)]="mostrarModalMiembro" [modal]="true" [style]="{ width: '600px' }" styleClass="custom-dialog">
+  <div class="mt-2">
+    <p-table #dtUsers [value]="usuariosSistema" [paginator]="true" [rows]="5" [loading]="cargandoUsuarios"
+      [globalFilterFields]="['nombre_completo', 'email', 'username']" styleClass="p-datatable-sm custom-table">
+      
+      <ng-template pTemplate="caption">
+        <span class="search-wrapper w-full">
+          <i class="pi pi-search"></i>
+          <input pInputText type="text" (input)="dtUsers.filterGlobal($any($event.target).value, 'contains')" 
+            placeholder="Filtrar por nombre o correo..." class="w-full" />
+        </span>
+      </ng-template>
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Usuario</th>
+          <th>Email</th>
+          <th style="width: 80px">Acción</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-user>
+        <tr>
+          <td>
+            <div class="flex flex-column">
+              <span class="font-bold text-sm">{{ user.nombre_completo }}</span>
+              <small class="text-gray-500">@{{ user.username }}</small>
+            </div>
+          </td>
+          <td class="text-sm">{{ user.email }}</td>
+          <td>
+            <p-button icon="pi pi-plus" [rounded]="true" severity="primary" size="small" (onClick)="anadirUsuario(user)" pTooltip="Añadir al grupo" />
           </td>
         </tr>
       </ng-template>
 
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="5" class="empty-message">No se encontraron miembros.</td>
+          <td colspan="3" class="text-center p-4">No hay más usuarios disponibles.</td>
         </tr>
       </ng-template>
-
     </p-table>
   </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cerrar" icon="pi pi-times" [text]="true" severity="secondary" (onClick)="mostrarModalMiembro = false" />
+  </ng-template>
+</p-dialog>
 
-</div>
+<p-dialog header="Editar Grupo" [(visible)]="mostrarModalGrupo" [modal]="true" [style]="{ width: '400px' }">
+  <div class="flex flex-column gap-4 mt-3">
+    <div class="field-group">
+      <label class="block mb-2 font-bold uppercase text-xs">Nombre</label>
+      <input pInputText [(ngModel)]="grupoEditando.nombre" class="w-full" />
+    </div>
+    <div class="field-group">
+      <label class="block mb-2 font-bold uppercase text-xs">Descripción</label>
+      <textarea pInputTextarea rows="3" [(ngModel)]="grupoEditando.descripcion" class="w-full"></textarea>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" (onClick)="mostrarModalGrupo = false"></p-button>
+    <p-button label="Guardar" icon="pi pi-check" severity="success" (onClick)="guardarCambiosGrupo()" />
+  </ng-template>
+</p-dialog>

@@ -1,71 +1,102 @@
 <div class="kanban-container">
-  
+
+  <p-toast></p-toast>
+
+  <!-- Filtros -->
   <div class="filtros-bar">
     <i class="pi pi-filter text-gray-400"></i>
     <span class="filtros-label">Filtros rápidos:</span>
-    
-    <button 
+    <button
       *ngFor="let filtro of filtrosDisponibles"
-      class="filtro-btn" 
+      class="filtro-btn"
       [class.active]="filtroActivo === filtro"
       (click)="cambiarFiltro(filtro)">
       {{ filtro }}
     </button>
   </div>
 
-  <div class="board-wrapper">
-    
-    <div class="kanban-col" 
-         *ngFor="let col of columnas" 
-         pDroppable="tickets" 
+  <!-- Skeleton cargando -->
+  <div *ngIf="cargando" class="board-wrapper">
+    <div class="kanban-col p-3" *ngFor="let i of [1,2,3]">
+      <p-skeleton width="60%" height="2rem" class="mb-4" />
+      <p-skeleton width="100%" height="8rem" class="mb-3" />
+      <p-skeleton width="100%" height="8rem" />
+    </div>
+  </div>
+
+  <!-- Board Kanban -->
+  <div class="board-wrapper" *ngIf="!cargando">
+
+    <div class="kanban-col"
+         *ngFor="let col of columnas"
+         pDroppable="tickets"
          (onDrop)="drop(col.valor)">
-      
+
       <div class="col-header">
         <h3>{{ col.titulo }}</h3>
         <span class="badge">{{ getTicketsPorEstado(col.valor).length }}</span>
       </div>
-      
+
       <div class="col-body">
-        
-        <div class="ticket-card" 
+
+        <div class="ticket-card"
              *ngFor="let ticket of getTicketsPorEstado(col.valor)"
              pDraggable="tickets"
              (onDragStart)="dragStart(ticket)"
-             (onDragEnd)="dragEnd()"
-             (click)="abrirDetalle(ticket)">
-             
+             (onDragEnd)="dragEnd()">
+
           <div class="ticket-header">
-            <span class="ticket-id">{{ ticket.id }}</span>
-            <span class="ticket-prioridad" [ngClass]="'prio-' + ticket.prioridad.toLowerCase()">
+            <span class="ticket-id">#{{ ticket.id }}</span>
+            <span class="ticket-prioridad" [ngClass]="'prio-' + ticket.prioridad?.toLowerCase()">
               {{ ticket.prioridad }}
             </span>
           </div>
-          
+
           <h4 class="ticket-title">{{ ticket.titulo }}</h4>
-          
+
           <div class="ticket-footer">
-            
-            <div class="assignee" *ngIf="ticket.asignado">
-              <div class="avatar" [style.backgroundColor]="ticket.asignado.color">
-                {{ ticket.asignado.iniciales }}
+
+            <div class="assignee" *ngIf="ticket.asignadoInfo">
+              <div class="avatar" [style.backgroundColor]="ticket.asignadoInfo.color">
+                {{ ticket.asignadoInfo.iniciales }}
               </div>
-              <span class="assignee-name">{{ ticket.asignado.nombre }}</span>
+              <span class="assignee-name">{{ ticket.asignadoInfo.nombre }}</span>
             </div>
-            
-            <div class="assignee unassigned" *ngIf="!ticket.asignado">
+
+            <div class="assignee unassigned" *ngIf="!ticket.asignadoInfo">
               <div class="avatar gray"><i class="pi pi-user"></i></div>
               <span class="assignee-name">Sin asignar</span>
             </div>
 
-            <div class="ticket-date">
-              <i class="pi pi-calendar"></i> {{ ticket.fecha }}
+            <div class="ticket-actions">
+              <div class="ticket-date">
+                <i class="pi pi-calendar"></i> {{ ticket.fecha }}
+              </div>
+              <!-- ✅ Botón ver detalle en lugar de alert() -->
+              <p-button icon="pi pi-eye" [text]="true" size="small"
+                        severity="secondary" pTooltip="Ver detalle"
+                        (onClick)="abrirDetalle(ticket); $event.stopPropagation()" />
             </div>
-            
+
           </div>
         </div>
-        
+
+        <!-- Columna vacía -->
+        <div *ngIf="getTicketsPorEstado(col.valor).length === 0"
+             class="col-empty">
+          <i class="pi pi-inbox text-2xl mb-2"></i>
+          <span>Sin tickets</span>
+        </div>
+
       </div>
     </div>
-    
+
   </div>
+
+  <!-- Panel detalle del ticket -->
+  <app-detalle-ticket
+    [(visible)]="detalleVisible"
+    [ticket]="ticketDetalle">
+  </app-detalle-ticket>
+
 </div>

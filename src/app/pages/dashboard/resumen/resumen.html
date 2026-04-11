@@ -1,36 +1,59 @@
 <div class="resumen-container">
 
-  <div class="stats-wrapper">
-    <div *ngFor="let stat of estadisticas" class="stat-card" [ngClass]="stat.borderClass">
-      <div class="stat-label">{{ stat.label }}</div>
-      <div class="stat-value">{{ stat.value }}</div>
+  <p-toast></p-toast>
+
+  <div *ngIf="cargando" class="flex flex-column gap-4">
+    <div class="flex gap-3">
+      <p-skeleton width="150px" height="80px" *ngFor="let i of [1,2,3,4]"></p-skeleton>
     </div>
+    <p-skeleton width="100%" height="250px" class="mt-4"></p-skeleton>
   </div>
 
-  <div class="table-container">
-    <h3 class="table-title">Tickets Recientes</h3>
+  <div *ngIf="!cargando">
     
-    <p-table [value]="ticketsRecientes" styleClass="custom-table">
+    <div class="stats-wrapper">
+      <div *ngFor="let stat of estadisticas" class="stat-card" [ngClass]="stat.borderClass">
+        <div class="stat-label">{{ stat.label }}</div>
+        <div class="stat-value">{{ stat.value }}</div>
+      </div>
+    </div>
+
+    <div class="table-container mt-4">
+      <h3 class="table-title">Tickets Recientes</h3>
       
-      <ng-template pTemplate="header">
-        <tr>
-          <th>ID</th>
-          <th>Titulo</th>
-          <th>Estado</th>
-          <th>Prioridad</th>
-        </tr>
-      </ng-template>
-      
-      <ng-template pTemplate="body" let-ticket>
-        <tr>
-          <td>{{ ticket.id }}</td>
-          <td>{{ ticket.titulo }}</td>
-          <td>{{ ticket.estado }}</td>
-          <td>{{ ticket.prioridad }}</td>
-        </tr>
-      </ng-template>
-      
-    </p-table>
+      <p-table [value]="ticketsRecientes" styleClass="custom-table" [rowHover]="true">
+        
+        <ng-template pTemplate="header">
+          <tr>
+            <th>ID</th>
+            <th>Título</th>
+            <th>Estado</th>
+            <th>Prioridad</th>
+          </tr>
+        </ng-template>
+        
+        <ng-template pTemplate="body" let-ticket>
+          <tr>
+            <td class="font-bold">#{{ ticket.id }}</td>
+            <td>{{ ticket.titulo }}</td>
+            <td>
+              <span class="text-surface-400">{{ ticket.estado }}</span>
+            </td>
+            <td>{{ ticket.prioridad }}</td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="4" class="text-center p-4 text-surface-400">
+              No hay tickets registrados en este grupo.
+            </td>
+          </tr>
+        </ng-template>
+        
+      </p-table>
+    </div>
+
   </div>
 
 </div>

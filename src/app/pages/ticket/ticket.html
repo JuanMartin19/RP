@@ -1,9 +1,10 @@
 <div class="p-4 w-full">
+  <p-toast></p-toast>
 
   <div class="surface-card p-4 border-round shadow-2 main-card">
 
     <div class="flex justify-content-between align-items-center mb-5">
-      <h2 class="m-0 text-white text-2xl font-bold">Gestión de Tickets</h2>
+      <h2 class="m-0 text-white text-2xl font-bold">Tickets del Grupo #{{ groupId }}</h2>
       
       <p-button
         *ngIf="canAdd"
@@ -17,9 +18,9 @@
     <p-table
       *ngIf="canView"
       [value]="tickets"
-      responsiveLayout="scroll"
       [paginator]="true"
-      [rows]="5"
+      [rows]="10"
+      [loading]="cargando"
       styleClass="custom-table"
       [rowHover]="true">
 
@@ -28,7 +29,7 @@
           <th>Título</th>
           <th>Estado</th>
           <th>Prioridad</th>
-          <th>Asignado a</th>
+          <th>Creado por</th>
           <th style="width:140px">Acciones</th>
         </tr>
       </ng-template>
@@ -42,12 +43,16 @@
           <td>
             <p-tag [value]="ticket.prioridad" [severity]="getPrioridadSeverity(ticket.prioridad)"></p-tag>
           </td>
-          <td class="text-400">{{ticket.autor}}</td>
+          <td class="text-400">{{ticket.autor?.nombre_completo || 'Sistema'}}</td>
           <td>
             <div class="flex gap-2">
-              <button *ngIf="canEdit" pButton icon="pi pi-pencil" class="p-button-rounded p-button-outlined action-btn edit-btn" (click)="editTicket(ticket)"></button>
+              <button *ngIf="canEdit" pButton icon="pi pi-pencil" 
+                class="p-button-rounded p-button-outlined action-btn edit-btn" 
+                (click)="editTicket(ticket)"></button>
               
-              <button *ngIf="canDelete" pButton icon="pi pi-trash" class="p-button-rounded p-button-outlined action-btn delete-btn" (click)="deleteTicket(ticket.id!)"></button>
+              <button *ngIf="canDelete" pButton icon="pi pi-trash" 
+                class="p-button-rounded p-button-outlined action-btn delete-btn" 
+                (click)="deleteTicket(ticket.id)"></button>
             </div>
           </td>
         </tr>
@@ -55,7 +60,7 @@
 
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="5" class="text-center p-4 text-500">No hay tickets registrados</td>
+          <td colspan="5" class="text-center p-4 text-500">No hay tickets registrados en este grupo</td>
         </tr>
       </ng-template>
 
@@ -77,28 +82,23 @@
 
     <div class="field-group">
       <label class="font-semibold block mb-2 text-sm text-gray-300">Título del Ticket *</label>
-      <input pInputText formControlName="titulo" class="w-full custom-input" />
+      <input pInputText formControlName="titulo" class="w-full custom-input" placeholder="Ej: Error en servidor" />
     </div>
 
     <div class="field-group">
       <label class="font-semibold block mb-2 text-sm text-gray-300">Descripción</label>
-      <textarea pInputTextarea rows="3" formControlName="descripcion" class="w-full custom-input"></textarea>
+      <textarea pInputTextarea rows="3" formControlName="descripcion" class="w-full custom-input" placeholder="Detalles de la falla..."></textarea>
     </div>
 
     <div class="flex gap-3 w-full">
       <div class="field-group flex-1">
-        <label class="font-semibold block mb-2 text-sm text-gray-300">Estado Inicial</label>
-        <p-select [options]="['Pendiente','En progreso','Hecho']" formControlName="estado" appendTo="body" styleClass="w-full custom-input p-0"></p-select>
-      </div>
-
-      <div class="field-group flex-1">
         <label class="font-semibold block mb-2 text-sm text-gray-300">Prioridad</label>
-        <p-select [options]="['Alta','Media','Baja']" formControlName="prioridad" appendTo="body" styleClass="w-full custom-input p-0"></p-select>
+        <p-select [options]="['Alta','Media','Baja']" formControlName="prioridad" appendTo="body" styleClass="w-full custom-input"></p-select>
       </div>
     </div>
 
     <div class="field-group">
-      <label class="font-semibold block mb-2 text-sm text-gray-300">Asignado a</label>
+      <label class="font-semibold block mb-2 text-sm text-gray-300">Autor</label>
       <div class="p-inputgroup custom-input-group">
         <span class="p-inputgroup-addon bg-transparent border-none text-gray-400 pl-3">
           <i class="pi pi-user"></i>
@@ -111,8 +111,8 @@
 
   <ng-template pTemplate="footer">
     <div class="flex justify-content-end gap-3 mt-4 align-items-center">
-      <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" styleClass="text-gray-400 hover:text-white" (click)="ticketDialog=false"></p-button>
-      <p-button [label]="editingId ? 'Guardar' : 'Crear'" icon="pi pi-check" styleClass="custom-blue-btn" (click)="saveTicket()"></p-button>
+      <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" (click)="ticketDialog=false"></p-button>
+      <p-button [label]="editingId ? 'Guardar Cambios' : 'Crear Ticket'" icon="pi pi-check" styleClass="custom-blue-btn" (click)="saveTicket()"></p-button>
     </div>
   </ng-template>
 

@@ -40,10 +40,11 @@
 
 /* Colores de los bordes laterales */
 .border-orange { border-left-color: #f97316; }
-.border-blue   { border-left-color: #3b82f6; }
 .border-yellow { border-left-color: #eab308; }
 .border-green  { border-left-color: #22c55e; }
 .border-red    { border-left-color: #ef4444; }
+.border-blue   { border-left-color: #117DC0; }
+.border-green  { border-left-color: #58B996; }
 
 
 /* --- SECCIÓN DE LA TABLA --- */
@@ -87,3 +88,5 @@
 :host ::ng-deep .custom-table .p-datatable-tbody > tr:last-child > td {
   border-bottom: none !important;
 }
+
+/* Modifica estas dos líneas en tu archivo resumen.css si quieres mantener tu paleta intacta */

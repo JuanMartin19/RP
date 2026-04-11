@@ -1,106 +1,122 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PrimeImportsModule } from '../../prime-imports';
+import { TicketService } from '../../services/ticket.service';
+import { AuthService } from '../../services/auth.service';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-detalle-ticket',
   standalone: true,
   imports: [CommonModule, FormsModule, PrimeImportsModule],
+  providers: [MessageService],
   templateUrl: './detalle-ticket.html',
   styleUrl: './detalle-ticket.css'
 })
-export class DetalleTicket implements OnInit {
-  
-  // Controla si el panel está abierto o cerrado
-  @Input() visible: boolean = false;
-  @Output() visibleChange = new EventEmitter<boolean>();
+export class DetalleTicket implements OnInit, OnChanges {
 
-  // El ticket que recibe para mostrar
+  @Input() visible = false;
+  @Output() visibleChange = new EventEmitter<boolean>();
   @Input() ticket: any = null;
 
-  // Usuario actual (simulado) para lógica de permisos
-  usuarioActual = 'Jonathan Cruz';
-  esCreador = false;
-  esAsignado = false;
-
+  usuarioActual: any = null;
   nuevoComentario = '';
+  cargandoDetalle = false;
 
-  estados = ['Pendiente', 'En Progreso', 'Revisión', 'Hecho', 'Bloqueado'];
-  
-  // Las 7 prioridades en Chino
-  prioridadesChino = [
-    { label: 'Urgente', value: 'Urgente' },
-    { label: 'Muy Alta', value: 'Muy Alta' },
-    { label: 'Alta', value: 'Alta' },
-    { label: 'Media', value: 'Media' },
-    { label: 'Baja', value: 'Baja' },
-    { label: 'Muy Baja', value: 'Muy Baja' },
-    { label: 'En Pausa', value: 'En Pausa' }
-  ];
+  ticketCompleto: any = null;
 
-  // Simulación de Base de Datos para comentarios e historial
-  comentarios = [
-    { autor: 'Emmanuel R.', fecha: '2026-03-15 10:30', texto: 'Ya revisé los logs, parece ser un error de CORS.' },
-    { autor: 'Jonathan Cruz', fecha: '2026-03-15 11:05', texto: 'Perfecto, ajustaré los headers en el backend hoy mismo.' }
-  ];
-
-  historial = [
-    { accion: 'Ticket creado', autor: 'Emmanuel R.', fecha: '2026-03-14 09:00' },
-    { accion: 'Estado cambiado a En Progreso', autor: 'Jonathan Cruz', fecha: '2026-03-15 10:00' }
-  ];
+  constructor(
+    private ticketSvc: TicketService,
+    private authSvc: AuthService,
+    private messageSvc: MessageService
+  ) {}
 
   ngOnInit() {
-    this.evaluarPermisos();
+    this.usuarioActual = this.authSvc.getUser();
   }
 
-  // Cuando cambia el ticket que le pasamos por Input, re-evalúa permisos
   ngOnChanges() {
-    if (this.ticket) {
-      this.evaluarPermisos();
+    if (this.ticket && this.visible) {
+      this.cargarDetalleCompleto();
     }
   }
 
-  evaluarPermisos() {
-    if (!this.ticket) return;
-    
-    // Asumimos que el ticket trae un campo 'creador'. Aquí lo simulamos:
-    const creadorTicket = 'Emmanuel R.'; 
-    
-    this.esCreador = (this.usuarioActual === creadorTicket);
-    this.esAsignado = (this.ticket.asignado === this.usuarioActual || this.ticket.autor === this.usuarioActual);
+  cargarDetalleCompleto() {
+    if (!this.ticket?.id) return;
+    this.cargandoDetalle = true;
+
+    // Solo traemos la información, comentarios e historial. Cero grupos.
+    this.ticketSvc.getTicketById(this.ticket.id).subscribe({
+      next: (res: any) => {
+        this.ticketCompleto = { ...res.data };
+        this.cargandoDetalle = false;
+      },
+      error: () => {
+        this.ticketCompleto = { ...this.ticket, comentarios: [], historial: [] };
+        this.cargandoDetalle = false;
+      }
+    });
   }
 
   cerrarPanel() {
     this.visible = false;
-    this.visibleChange.emit(this.visible);
+    this.visibleChange.emit(false);
+    this.ticketCompleto = null;
+    this.nuevoComentario = ''; // Limpiar cajón
   }
 
   agregarComentario() {
-    if (!this.nuevoComentario.trim()) return;
+    if (!this.nuevoComentario.trim() || !this.ticketCompleto) return;
 
-    this.comentarios.unshift({
-      autor: this.usuarioActual,
-      fecha: 'Justo ahora',
-      texto: this.nuevoComentario
+    this.ticketSvc.addComment(this.ticketCompleto.id, this.nuevoComentario.trim()).subscribe({
+      next: (res: any) => {
+        const nuevoC = res.data?.comentario;
+        if (nuevoC) {
+          this.ticketCompleto.comentarios = [
+            ...(this.ticketCompleto.comentarios || []),
+            nuevoC
+          ];
+        }
+        this.nuevoComentario = '';
+        this.messageSvc.add({ severity: 'success', summary: 'Comentario agregado', detail: '' });
+      },
+      error: () => {
+        this.messageSvc.add({ severity: 'error', summary: 'Error', detail: 'No se pudo agregar el comentario.' });
+      }
     });
-    
-    // Registrar en el historial
-    this.registrarEnHistorial('Agregó un comentario');
-    this.nuevoComentario = '';
   }
 
-  registrarEnHistorial(accion: string) {
-    this.historial.unshift({
-      accion: accion,
-      autor: this.usuarioActual,
-      fecha: 'Justo ahora'
+  eliminarComentario(comentario: any) {
+    const miId = this.usuarioActual?.id || this.usuarioActual?.sub;
+    if (comentario.autor?.id != miId) return;
+
+    this.ticketSvc.deleteComment(this.ticketCompleto.id, comentario.id).subscribe({
+      next: () => {
+        this.ticketCompleto.comentarios = this.ticketCompleto.comentarios
+          .filter((c: any) => c.id !== comentario.id);
+        this.messageSvc.add({ severity: 'warn', summary: 'Comentario eliminado', detail: '' });
+      },
+      error: () => {
+        this.messageSvc.add({ severity: 'error', summary: 'Error', detail: 'No se pudo eliminar el comentario.' });
+      }
     });
   }
 
-  guardarCambios() {
-    this.registrarEnHistorial('Actualizó los detalles del ticket');
-    alert('Cambios guardados correctamente');
-    this.cerrarPanel();
+  formatearFecha(fecha: string): string {
+    if (!fecha) return '—';
+    return new Date(fecha).toLocaleDateString('es-MX', {
+      day: '2-digit', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  }
+
+  getSeverity(estado: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
+    switch (estado) {
+      case 'Completado': return 'success';
+      case 'En Progreso': return 'info';
+      case 'Pendiente': return 'warn';
+      default: return 'secondary';
+    }
   }
 }

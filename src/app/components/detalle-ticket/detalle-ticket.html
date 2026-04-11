@@ -1,90 +1,167 @@
-<p-drawer 
-  [(visible)]="visible" 
-  position="right" 
-  styleClass="ticket-drawer-modern" 
+<p-drawer
+  [(visible)]="visible"
+  position="right"
+  styleClass="ticket-drawer-modern"
   (onHide)="cerrarPanel()"
   [showCloseIcon]="false">
 
-  <div class="drawer-content-wrapper" *ngIf="ticket">
-    
+  <p-toast />
+
+  <div *ngIf="cargandoDetalle" class="p-4 flex flex-column gap-3">
+    <p-skeleton height="2rem" width="60%" />
+    <p-skeleton height="1rem" width="40%" />
+    <p-skeleton height="100px" />
+    <p-skeleton height="60px" />
+    <p-skeleton height="60px" />
+  </div>
+
+  <div class="drawer-content-wrapper" *ngIf="ticketCompleto && !cargandoDetalle">
+
     <div class="drawer-header">
       <div class="title-group">
-        <span class="id-badge">{{ ticket.id || 'TK-1' }}</span>
-        <h2 class="main-title">{{ ticket.titulo }}</h2>
+        <span class="id-badge">#{{ ticketCompleto.id }}</span>
+        <h2 class="main-title">{{ ticketCompleto.titulo }}</h2>
       </div>
       <div class="action-group">
-        <p-button label="Guardar" icon="pi pi-check" styleClass="btn-save" (onClick)="guardarCambios()"></p-button>
-        <p-button icon="pi pi-times" [text]="true" styleClass="btn-close" (onClick)="cerrarPanel()"></p-button>
+        <p-button icon="pi pi-times" [text]="true"
+                  styleClass="btn-close" (onClick)="cerrarPanel()" />
       </div>
     </div>
 
     <div class="drawer-body">
-      
+
       <div class="metadata-grid">
+
         <div class="meta-item">
           <label>ESTADO</label>
-          <p-select [options]="estados" [(ngModel)]="ticket.estado" styleClass="fluid-select"></p-select>
+          <p-tag [value]="ticketCompleto.estado"
+                 [severity]="getSeverity(ticketCompleto.estado)" />
         </div>
+
         <div class="meta-item">
           <label>PRIORIDAD</label>
-          <p-select [options]="prioridadesChino" optionLabel="label" optionValue="value" [(ngModel)]="ticket.prioridad" styleClass="fluid-select"></p-select>
+          <span class="text-surface-300 font-medium">
+            {{ ticketCompleto.prioridad }}
+          </span>
         </div>
-        <div class="meta-item">
-          <label>RESPONSABLE</label>
-          <div class="user-chip">
-            <i class="pi pi-user"></i>
-            <span>{{ ticket.asignado || 'Jonathan' }}</span>
+
+        <div class="meta-item" style="grid-column: span 2;">
+          <label>ASIGNADO A</label>
+          <div *ngIf="ticketCompleto.asignado" class="user-chip p-2 border-round border-1 border-gray-700 bg-gray-900 flex align-items-center w-full">
+            <i class="pi pi-user mr-2 text-gray-400"></i>
+            <span class="text-gray-300">{{ ticketCompleto.asignado.nombre_completo }}</span>
+          </div>
+          <div *ngIf="!ticketCompleto.asignado" class="user-chip p-2 border-round border-1 border-gray-700 bg-gray-900 flex align-items-center w-full">
+            <i class="pi pi-user mr-2 text-gray-600"></i>
+            <span class="text-surface-500">Sin asignar</span>
           </div>
         </div>
+
+        <div class="meta-item" style="grid-column: span 2;">
+          <label>CREADO POR</label>
+          <div class="user-chip p-2 border-round border-1 border-gray-800 bg-gray-900 flex align-items-center w-full">
+            <i class="pi pi-user-edit mr-2 text-gray-500"></i>
+            <span class="text-gray-400">{{ ticketCompleto.autor?.nombre_completo || 'Sistema' }}</span>
+          </div>
+        </div>
+
       </div>
 
       <hr class="divider" />
 
       <div class="description-section">
         <label>DESCRIPCIÓN</label>
-        <textarea pInputTextarea rows="3" [(ngModel)]="ticket.descripcion" placeholder="Sin descripción..." class="fluid-textarea"></textarea>
+        <p class="text-surface-300 text-sm m-0 line-height-3">
+          {{ ticketCompleto.descripcion || 'Sin descripción.' }}
+        </p>
       </div>
+
+      <hr class="divider" />
 
       <div class="activity-section">
         <p-tabs value="0">
           <p-tablist>
-            <p-tab value="0">Comentarios</p-tab>
-            <p-tab value="1">Historial</p-tab>
+            <p-tab value="0">
+              <i class="pi pi-comments mr-1"></i>
+              Comentarios ({{ ticketCompleto.comentarios?.length || 0 }})
+            </p-tab>
+            <p-tab value="1">
+              <i class="pi pi-history mr-1"></i>
+              Historial ({{ ticketCompleto.historial?.length || 0 }})
+            </p-tab>
           </p-tablist>
+
           <p-tabpanels>
+
             <p-tabpanel value="0">
               <div class="comment-post">
-                <textarea pInputTextarea rows="2" [(ngModel)]="nuevoComentario" placeholder="Escribe algo..." class="fluid-textarea"></textarea>
+                <textarea pInputTextarea rows="2"
+                          [(ngModel)]="nuevoComentario"
+                          placeholder="Escribe un comentario..."
+                          class="fluid-textarea"></textarea>
+                          
                 <div class="flex justify-content-end mt-2">
-                  <p-button label="Comentar" size="small" (onClick)="agregarComentario()"></p-button>
+                  <p-button label="Comentar" size="small" icon="pi pi-send"
+                            [disabled]="!nuevoComentario.trim()"
+                            (onClick)="agregarComentario()" />
                 </div>
               </div>
+
               <div class="comment-feed">
-                <div class="feed-item" *ngFor="let c of comentarios">
-                  <div class="avatar-circle">{{ c.autor.charAt(0) }}</div>
+                <div *ngIf="!ticketCompleto.comentarios?.length"
+                     class="text-center text-surface-500 py-4 text-sm">
+                  Sin comentarios aún.
+                </div>
+                <div class="feed-item" *ngFor="let c of ticketCompleto.comentarios">
+                  <div class="avatar-circle">
+                    {{ c.autor?.nombre_completo?.charAt(0) || '?' }}
+                  </div>
                   <div class="feed-text">
-                    <div class="feed-header"><strong>{{c.autor}}</strong> <small>{{c.fecha}}</small></div>
-                    <p>{{c.texto}}</p>
+                    <div class="feed-header">
+                      <strong>{{ c.autor?.nombre_completo }}</strong>
+                      <small>{{ formatearFecha(c.creado_en) }}</small>
+                      
+                      <p-button *ngIf="c.autor?.id == (usuarioActual?.id || usuarioActual?.sub)"
+                                icon="pi pi-times" [text]="true" size="small"
+                                severity="danger" [style]="{'margin-left': 'auto'}"
+                                (onClick)="eliminarComentario(c)" />
+                    </div>
+                    <p>{{ c.texto }}</p>
                   </div>
                 </div>
               </div>
             </p-tabpanel>
+
             <p-tabpanel value="1">
-               <div class="history-feed">
-                  <div class="history-step" *ngFor="let h of historial">
-                    <i class="pi pi-history"></i>
-                    <span><strong>{{h.autor}}</strong> {{h.accion}} ({{h.fecha}})</span>
+              <div class="history-feed">
+                <div *ngIf="!ticketCompleto.historial?.length"
+                     class="text-center text-surface-500 py-4 text-sm">
+                  Sin historial registrado.
+                </div>
+                <div class="history-step" *ngFor="let h of ticketCompleto.historial">
+                  <i class="pi pi-history"></i>
+                  <div class="flex flex-column gap-1">
+                    <span>
+                      <strong>{{ h.autor?.nombre_completo || 'Sistema' }}</strong>
+                      — {{ h.accion }}
+                    </span>
+                    <small class="text-surface-500">{{ formatearFecha(h.creado_en) }}</small>
                   </div>
-               </div>
+                </div>
+              </div>
             </p-tabpanel>
+
           </p-tabpanels>
         </p-tabs>
       </div>
+
     </div>
 
     <div class="drawer-footer">
-        <span>Creado el 2026-03-14</span>
-        <span>Límite: {{ ticket.fechaLimite || '2026-03-15' }}</span>
+      <span>
+        <i class="pi pi-calendar mr-1"></i>
+        Creado: {{ formatearFecha(ticketCompleto.creado_en) }}
+      </span>
     </div>
 
   </div>

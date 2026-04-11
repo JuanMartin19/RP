@@ -1,40 +1,38 @@
 <div class="p-4">
 
   <div class="flex justify-content-between align-items-center mb-4">
-
-    <h2>Dashboard del Grupo: {{ groupId }}</h2>
+    <div>
+      <p class="text-gray-400 m-0">Espacio de Trabajo</p>
+      <h2 class="m-0 text-white font-bold">Dashboard del Grupo: {{ groupId }}</h2>
+    </div>
 
     <p-button
       *ngIf="canAddticket"
-      routerLink="/ticket"
-      label="Crear Ticket"
-      icon="pi pi-plus">
+      routerLink="ticket"
+      label="Gestionar Tickets"
+      icon="pi pi-plus"
+      styleClass="custom-blue-btn">
     </p-button>
-
   </div>
 
   <p-tabs value="resumen">
-
     <p-tablist>
-
       <p-tab value="resumen" routerLink="resumen">
-        Resumen
+        <i class="pi pi-chart-bar mr-2"></i>Resumen
       </p-tab>
 
       <p-tab value="kanban" routerLink="kanban">
-        Tablero Kanban
+        <i class="pi pi-th-large mr-2"></i>Tablero Kanban
       </p-tab>
 
       <p-tab value="lista" routerLink="lista">
-        Vista de Lista
+        <i class="pi pi-list mr-2"></i>Vista de Lista
       </p-tab>
 
       <p-tab value="gestion" routerLink="gestion">
-        Gestión - Grupo
+        <i class="pi pi-cog mr-2"></i>Gestión - Grupo
       </p-tab>
-
     </p-tablist>
-
   </p-tabs>
 
   <div class="mt-4">

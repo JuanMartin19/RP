@@ -1,3 +1,4 @@
+// src/app/pages/perfil/perfil.ts
 import { Component, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -26,7 +27,7 @@ export class Perfil implements OnInit {
   perfilForm = new FormGroup({
     nombre: new FormControl('', [Validators.required]),
     usuario: new FormControl('', [Validators.required, Validators.minLength(4)]),
-    email: new FormControl({ value: '', disabled: true }), // email no editable
+    email: new FormControl({ value: '', disabled: true }), 
     password: new FormControl(''),
     confirmPassword: new FormControl(''),
     direccion: new FormControl(''),
@@ -39,6 +40,7 @@ export class Perfil implements OnInit {
   cargando = false;
   cargandoDatos = true;
 
+  // Los stats ahora se actualizarán con datos reales
   stats = [
     { titulo: 'Pendientes', valor: 0, class: 'bg-blue' },
     { titulo: 'En Progreso', valor: 0, class: 'bg-yellow' },
@@ -57,10 +59,11 @@ export class Perfil implements OnInit {
     const user = this.authSvc.getUser();
     if (!user) return;
 
-    this.usuarioId = user.id;
+    // Dependiendo de tu JWT, el id puede ser 'id' o 'sub'
+    this.usuarioId = user.id || user.sub;
 
-    // Cargar datos reales del usuario
-    this.usuariosSvc.getById(user.id).subscribe({
+    // 1. Cargar datos personales del usuario
+    this.usuariosSvc.getById(this.usuarioId!).subscribe({
       next: (res: any) => {
         const u = res.data;
         this.perfilForm.patchValue({
@@ -74,6 +77,45 @@ export class Perfil implements OnInit {
       },
       error: () => {
         this.cargandoDatos = false;
+      }
+    });
+
+    // 2. Cargar tickets asignados y estadísticas reales
+    this.cargarEstadisticasReal();
+  }
+
+  cargarEstadisticasReal() {
+    // Usamos el ID que ya tenemos (ID 4 en tu caso)
+    const miId = this.usuarioId || this.authSvc.getUser()?.id;
+    
+    if (!miId) return;
+
+    this.ticketSvc.getTicketsByGroup('all', { asignado_id: miId }).subscribe({
+      next: (res: any) => {
+        // Guardamos los tickets reales
+        this.misTickets = Array.isArray(res.data) ? res.data : [];
+        
+        // Actualizamos los widgets uno por uno
+        this.stats = [
+          { 
+            titulo: 'Pendientes', 
+            valor: this.misTickets.filter(t => t.estado === 'Pendiente').length, 
+            class: 'bg-blue' 
+          },
+          { 
+            titulo: 'En Progreso', 
+            valor: this.misTickets.filter(t => t.estado === 'En Progreso').length, 
+            class: 'bg-yellow' 
+          },
+          { 
+            titulo: 'Completados', 
+            valor: this.misTickets.filter(t => t.estado === 'Completado').length, 
+            class: 'bg-green' 
+          }
+        ];
+      },
+      error: (err) => {
+        console.error("Error cargando tickets:", err);
       }
     });
   }
@@ -95,13 +137,14 @@ export class Perfil implements OnInit {
     this.perfilForm.patchValue({ telefono: valor });
   }
 
-  getPrioridadSeverity(prio: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
-    if (prio === 'Alta') return 'danger';
+  getPrioridadSeverity(prio: string): any {
+    if (prio === 'Urgente' || prio === 'Alta') return 'danger';
     if (prio === 'Media') return 'warn';
+    if (prio === 'Baja') return 'info';
     return 'secondary';
   }
 
-  getEstadoSeverity(estado: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
+  getEstadoSeverity(estado: string): any {
     switch (estado) {
       case 'Completado': return 'success';
       case 'En Progreso': return 'info';
@@ -113,29 +156,7 @@ export class Perfil implements OnInit {
   guardarCambios() {
     this.mensaje = '';
     this.perfilForm.markAllAsTouched();
-
-    const v = this.perfilForm.value;
-
-    // Validar contraseña solo si quiere cambiarla
-    if (v.password || v.confirmPassword) {
-      if ((v.password || '').length < 6) {
-        this.tipoMensaje = 'error';
-        this.mensaje = 'La contraseña debe tener mínimo 6 caracteres.';
-        return;
-      }
-      if (v.password !== v.confirmPassword) {
-        this.tipoMensaje = 'error';
-        this.mensaje = 'Las contraseñas no coinciden.';
-        return;
-      }
-    }
-
-    // Validar mayoría de edad si puso fecha
-    if (this.perfilForm.get('nacimiento')?.hasError('menorDeEdad')) {
-      this.tipoMensaje = 'error';
-      this.mensaje = 'Debes ser mayor de 18 años.';
-      return;
-    }
+    const v = this.perfilForm.getRawValue();
 
     if (!this.usuarioId) return;
 
@@ -155,7 +176,8 @@ export class Perfil implements OnInit {
         this.cargando = false;
         this.tipoMensaje = 'success';
         this.mensaje = 'Perfil actualizado correctamente.';
-        // Actualizar cookie del usuario
+        
+        // Actualizar datos locales en la cookie de sesión
         const userActual = this.authSvc.getUser();
         this.authSvc.setCookie('user', JSON.stringify({
           ...userActual,
