@@ -1,3 +1,4 @@
+// src/app/pages/auth/login/login.ts
 import { Component, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -23,7 +24,6 @@ export class Login implements OnInit {
   mensaje = '';
   tipoMensaje: 'success' | 'error' | 'info' | 'warn' | null = null;
   cargando = false;
-  logoClickCount = 0;
 
   constructor(
     private router: Router,
@@ -37,15 +37,6 @@ export class Login implements OnInit {
       const permisos = this.authSvc.extraerPermisosDelToken(token);
       this.permsSvc.setPermissions(permisos);
       this.router.navigate(['/home']);
-    }
-  }
-
-  onLogoClick() {
-    this.logoClickCount++;
-    if (this.logoClickCount >= 5) {
-      this.logoClickCount = 0;
-      this.tipoMensaje = 'warn';
-      this.mensaje = 'catch u 👀';
     }
   }
 

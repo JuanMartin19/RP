@@ -1,11 +1,150 @@
+/* src/app/pages/auth/register/register.css */
+
 :host {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100%;
+    display: block;
+    min-height: 100vh;
     width: 100%;
 }
 
-.min-h-screen {
-    min-height: 100% !important;
+.register-layout {
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    padding: 2rem 1rem;
+}
+
+/* Tarjeta principal */
+::ng-deep .register-card {
+    width: 100%;
+    max-width: 850px; /* Más ancho para alojar las dos columnas */
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4) !important;
+}
+
+::ng-deep .register-card .p-card-body {
+    padding: 2rem 3rem;
+}
+
+/* Header de la tarjeta */
+.card-header {
+    position: relative;
+    text-align: center;
+    padding-top: 1.5rem;
+}
+
+.back-btn {
+    position: absolute;
+    left: 1.5rem;
+    top: 1.5rem;
+}
+
+.logo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0;
+}
+
+.subtitle {
+    color: #94a3b8;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+/* Estilos de los inputs */
+::ng-deep .custom-input {
+    background: #0f172a !important;
+    border: 1px solid #334155 !important;
+    color: #f8fafc !important;
+    padding: 1rem 1rem !important;
+    border-radius: 8px !important;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+::ng-deep .custom-input:enabled:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.2) !important;
+}
+
+/* Ajuste específico para el Datepicker para que empate en altura */
+::ng-deep .date-picker-custom .p-inputtext {
+    padding: 1rem !important;
+    height: 54px; /* Altura forzada para que cuadre con los float labels */
+}
+
+/* Textos de error */
+.error-text {
+    color: #ef4444;
+    font-size: 0.8rem;
+    margin-left: 0.5rem;
+}
+
+/* Botón principal */
+::ng-deep .submit-btn {
+    background: #3b82f6 !important;
+    border: none !important;
+    padding: 1rem 3rem !important;
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    width: 100%;
+    max-width: 300px;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+::ng-deep .submit-btn:hover {
+    background: #2563eb !important;
+    transform: translateY(-2px);
+}
+
+/* Enlace inferior */
+.login-link {
+    color: #94a3b8;
+    font-size: 0.95rem;
+}
+
+.login-link a {
+    color: #3b82f6;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.login-link a:hover {
+    color: #60a5fa;
+    text-decoration: underline;
+}
+
+/* Ajustes responsivos para celulares */
+@media screen and (max-width: 768px) {
+    ::ng-deep .register-card .p-card-body {
+        padding: 1.5rem;
+    }
+    
+    .back-btn {
+        position: static;
+        margin-bottom: 1rem;
+    }
+    
+    .grid {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .col-12 {
+        padding: 0.5rem 0 !important;
+    }
 }

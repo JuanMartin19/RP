@@ -13,12 +13,12 @@ export const routes: Routes = [
   // --- RUTAS PÚBLICAS (Vigiladas por guestGuard) ---
   {
     path: 'login',
-    canActivate: [guestGuard], // Si ya tienes sesión, te saca de aquí y te manda a /home
+    canActivate: [guestGuard],
     loadComponent: () => import('./pages/auth/login/login').then(m => m.Login)
   },
   {
     path: 'register',
-    canActivate: [guestGuard], // Igual que el login
+    canActivate: [guestGuard],
     loadComponent: () => import('./pages/auth/register/register').then(m => m.Register)
   },
   {
@@ -29,7 +29,7 @@ export const routes: Routes = [
   // --- RUTAS PRIVADAS (Vigiladas por authGuard) ---
   {
     path: '',
-    canActivate: [authGuard], // ESCUDO MAESTRO: Protege todo el layout y sus hijos
+    canActivate: [authGuard],
     loadComponent: () => import('./layouts/main-layout/main-layout').then(m => m.MainLayout),
     children: [
       {
@@ -61,14 +61,14 @@ export const routes: Routes = [
             path: 'gestion',
             loadComponent: () => import('./pages/dashboard/gestion/gestion').then(m => m.Gestion)
           },
+          // CORRECCIÓN: La ruta ticket AHORA es hija directa del dashboard/:id
           {
-            path: 'ticket',
+            path: 'ticket', 
             loadComponent: () => import('./pages/ticket/ticket').then(m => m.Ticket)
           }
         ]
       },
       {
-        // Por si alguien entra a /dashboard sin ID, lo manda al layout de error o listado general
         path: 'dashboard',
         loadComponent: () => import('./pages/dashboard/dashboard').then(m => m.Dashboard)
       },
@@ -86,6 +86,7 @@ export const routes: Routes = [
       }
     ]
   },
+  
   {
     path: '**',
     redirectTo: 'login'

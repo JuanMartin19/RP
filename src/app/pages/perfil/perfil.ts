@@ -38,9 +38,11 @@ export class Perfil implements OnInit {
   mensaje = '';
   tipoMensaje: 'success' | 'error' | 'info' | null = null;
   cargando = false;
+  
+  // Variables de estado de carga separadas para form y stats
   cargandoDatos = true;
+  cargandoStats = true;
 
-  // Los stats ahora se actualizarán con datos reales
   stats = [
     { titulo: 'Pendientes', valor: 0, class: 'bg-blue' },
     { titulo: 'En Progreso', valor: 0, class: 'bg-yellow' },
@@ -59,7 +61,6 @@ export class Perfil implements OnInit {
     const user = this.authSvc.getUser();
     if (!user) return;
 
-    // Dependiendo de tu JWT, el id puede ser 'id' o 'sub'
     this.usuarioId = user.id || user.sub;
 
     // 1. Cargar datos personales del usuario
@@ -85,17 +86,16 @@ export class Perfil implements OnInit {
   }
 
   cargarEstadisticasReal() {
-    // Usamos el ID que ya tenemos (ID 4 en tu caso)
     const miId = this.usuarioId || this.authSvc.getUser()?.id;
-    
     if (!miId) return;
 
+    this.cargandoStats = true;
+
+    // Endpoint mágico: grupo 'all' filtrado por asignado_id
     this.ticketSvc.getTicketsByGroup('all', { asignado_id: miId }).subscribe({
       next: (res: any) => {
-        // Guardamos los tickets reales
         this.misTickets = Array.isArray(res.data) ? res.data : [];
         
-        // Actualizamos los widgets uno por uno
         this.stats = [
           { 
             titulo: 'Pendientes', 
@@ -113,9 +113,11 @@ export class Perfil implements OnInit {
             class: 'bg-green' 
           }
         ];
+        this.cargandoStats = false;
       },
       error: (err) => {
         console.error("Error cargando tickets:", err);
+        this.cargandoStats = false;
       }
     });
   }
@@ -158,7 +160,7 @@ export class Perfil implements OnInit {
     this.perfilForm.markAllAsTouched();
     const v = this.perfilForm.getRawValue();
 
-    if (!this.usuarioId) return;
+    if (!this.usuarioId || this.perfilForm.invalid) return;
 
     const payload: any = {
       nombre_completo: v.nombre,
@@ -166,6 +168,11 @@ export class Perfil implements OnInit {
       direccion: v.direccion || null,
       telefono: v.telefono || null
     };
+
+    // SOLO enviamos la contraseña si el usuario escribió una nueva
+    if (v.password && v.password.trim() !== '') {
+      payload.password = v.password;
+    }
 
     this.cargando = true;
     this.tipoMensaje = 'info';
@@ -177,7 +184,10 @@ export class Perfil implements OnInit {
         this.tipoMensaje = 'success';
         this.mensaje = 'Perfil actualizado correctamente.';
         
-        // Actualizar datos locales en la cookie de sesión
+        // Limpiamos los campos de password por seguridad
+        this.perfilForm.patchValue({ password: '', confirmPassword: '' });
+        this.perfilForm.markAsUntouched();
+        
         const userActual = this.authSvc.getUser();
         this.authSvc.setCookie('user', JSON.stringify({
           ...userActual,

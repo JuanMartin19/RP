@@ -1,92 +1,165 @@
-/* Contenedor principal para dar espaciado */
-.resumen-container {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  padding-top: 1rem;
+/* src/app/pages/dashboard/resumen/resumen.css */
+
+/* CONFIGURACIÓN DEL FONDO OBLIGATORIO */
+:host {
+    display: block;
+    min-height: 100%;
+    background-color: #F54927; /* REQUERIMIENTO CUMPLIDO: Fondo principal */
+    margin: -2rem; 
+    padding: 2.5rem;
+    color: #ffffff;
 }
 
-/* --- TARJETAS DE ESTADÍSTICAS --- */
-.stats-wrapper {
-  display: flex;
-  flex-direction: row;
-  gap: 1rem;
-  flex-wrap: wrap; /* Para que bajen de línea si la pantalla es pequeña */
+.resumen-container {
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* HEADER */
+.page-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -0.5px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.page-subtitle {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 1.05rem;
+    margin-top: 0.3rem;
+    font-weight: 400;
+}
+
+/* UTILIDAD GLASSMORPHISM: Aplica a todo contenedor que queramos hacer translúcido */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* TARJETAS DE MÉTRICAS */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
 }
 
 .stat-card {
-  background-color: #1e1e1e;
-  border-radius: 8px;
-  padding: 1.25rem 1.5rem;
-  flex: 1; /* Hace que todas las tarjetas midan lo mismo */
-  min-width: 140px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  /* Borde base transparente, se sobreescribe con las clases de abajo */
-  border-left: 4px solid transparent; 
+    padding: 1.8rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, background 0.2s ease;
 }
 
-.stat-label {
-  font-size: 1rem;
-  color: #e2e8f0;
+.stat-card:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.22);
+}
+
+/* Líneas decorativas (esto reemplaza tus clases de border) */
+.stat-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 8px 0 0 8px;
+}
+
+.stat-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.stat-title {
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
 }
 
 .stat-value {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #ffffff;
+    font-size: 3rem;
+    font-weight: 900;
+    line-height: 1;
+    color: #ffffff;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
-/* Colores de los bordes laterales */
-.border-orange { border-left-color: #f97316; }
-.border-yellow { border-left-color: #eab308; }
-.border-green  { border-left-color: #22c55e; }
-.border-red    { border-left-color: #ef4444; }
-.border-blue   { border-left-color: #117DC0; }
-.border-green  { border-left-color: #58B996; }
 
-
-/* --- SECCIÓN DE LA TABLA --- */
+/* TABLA GLASSMORPHISM */
 .table-container {
-  background-color: #1e1e1e;
-  border-radius: 8px;
-  padding: 1.5rem;
+    padding: 1.5rem;
 }
 
 .table-title {
-  margin: 0 0 1.5rem 0;
-  font-size: 1.25rem;
-  font-weight: 500;
-  color: #ffffff;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0 0 1rem 0;
+    color: #ffffff;
 }
 
-/* Sobrescribiendo los estilos de PrimeNG Table para Modo Oscuro */
-:host ::ng-deep .custom-table .p-datatable-header,
-:host ::ng-deep .custom-table .p-datatable-thead > tr > th {
-  background-color: transparent !important;
-  color: #ffffff !important;
-  border: none !important;
-  border-bottom: 1px solid #334155 !important;
-  padding: 0.75rem 0.5rem;
-  font-weight: 700;
-  text-align: left;
+/* Ajustes profundos a la tabla de PrimeNG para el tema translúcido */
+::ng-deep .glass-table .p-datatable-wrapper {
+    border-radius: 12px;
+    overflow: hidden;
 }
 
-:host ::ng-deep .custom-table .p-datatable-tbody > tr {
-  background-color: transparent !important;
-  color: #cbd5e1 !important;
+::ng-deep .glass-table .p-datatable-thead > tr > th {
+    background: rgba(0, 0, 0, 0.2) !important; /* Cabecera un poco más oscura */
+    color: #ffffff !important;
+    border: none !important;
+    font-weight: 600;
+    padding: 1rem !important;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
 }
 
-:host ::ng-deep .custom-table .p-datatable-tbody > tr > td {
-  border: none !important;
-  border-bottom: 1px solid #2d3748 !important; 
-  padding: 1rem 0.5rem;
+::ng-deep .glass-table .p-datatable-tbody > tr {
+    background: transparent !important;
+    color: #ffffff !important;
+    transition: background-color 0.2s;
 }
 
-/* Quitar la línea al último elemento de la tabla para que se vea más limpio */
-:host ::ng-deep .custom-table .p-datatable-tbody > tr:last-child > td {
-  border-bottom: none !important;
+::ng-deep .glass-table .p-datatable-tbody > tr:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
 }
 
-/* Modifica estas dos líneas en tu archivo resumen.css si quieres mantener tu paleta intacta */
+::ng-deep .glass-table .p-datatable-tbody > tr > td {
+    border: none !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding: 1.2rem 1rem !important;
+}
+
+::ng-deep .glass-table .p-datatable-tbody > tr:last-child > td {
+    border-bottom: none !important;
+}
+
+/* Insignia simple para el estado */
+.status-badge {
+    padding: 0.35rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* Animación */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
