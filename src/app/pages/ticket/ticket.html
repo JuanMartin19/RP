@@ -1,10 +1,13 @@
-<div class="p-4 w-full">
+<div class="p-4 w-full" *ngIf="canView; else noPermiso">
   <p-toast></p-toast>
 
   <div class="surface-card p-4 border-round shadow-2 main-card">
-
+    
     <div class="flex justify-content-between align-items-center mb-5">
-      <h2 class="m-0 text-white text-2xl font-bold">Tickets del Grupo #{{ groupId }}</h2>
+      <div>
+        <h2 class="m-0 text-white text-2xl font-bold">Tickets del Grupo</h2>
+        <p class="text-surface-400 text-sm">Gestiona y supervisa las incidencias del equipo actual</p>
+      </div>
       
       <p-button
         *ngIf="canAdd"
@@ -16,13 +19,13 @@
     </div>
 
     <p-table
-      *ngIf="canView"
       [value]="tickets"
       [paginator]="true"
       [rows]="10"
       [loading]="cargando"
       styleClass="custom-table"
-      [rowHover]="true">
+      [rowHover]="true"
+      responsiveLayout="stack">
 
       <ng-template pTemplate="header">
         <tr>
@@ -30,28 +33,39 @@
           <th>Estado</th>
           <th>Prioridad</th>
           <th>Creado por</th>
-          <th style="width:140px">Acciones</th>
+          <th style="width:140px" *ngIf="canEdit || canDelete">Acciones</th>
         </tr>
       </ng-template>
 
       <ng-template pTemplate="body" let-ticket>
         <tr>
-          <td class="font-bold text-white">{{ticket.titulo}}</td>
+          <td class="font-bold text-white">
+            <span class="p-column-title">Título</span>
+            {{ticket.titulo}}
+          </td>
           <td>
+            <span class="p-column-title">Estado</span>
             <p-tag [value]="ticket.estado" [severity]="getEstadoSeverity(ticket.estado)"></p-tag>
           </td>
           <td>
+            <span class="p-column-title">Prioridad</span>
             <p-tag [value]="ticket.prioridad" [severity]="getPrioridadSeverity(ticket.prioridad)"></p-tag>
           </td>
-          <td class="text-400">{{ticket.autor?.nombre_completo || 'Sistema'}}</td>
-          <td>
+          <td class="text-surface-400">
+            <span class="p-column-title">Autor</span>
+            {{ticket.autor?.nombre_completo || 'Sistema'}}
+          </td>
+          <td *ngIf="canEdit || canDelete">
+            <span class="p-column-title">Acciones</span>
             <div class="flex gap-2">
               <button *ngIf="canEdit" pButton icon="pi pi-pencil" 
                 class="p-button-rounded p-button-outlined action-btn edit-btn" 
+                pTooltip="Editar incidencia"
                 (click)="editTicket(ticket)"></button>
               
               <button *ngIf="canDelete" pButton icon="pi pi-trash" 
                 class="p-button-rounded p-button-outlined action-btn delete-btn" 
+                pTooltip="Eliminar ticket"
                 (click)="deleteTicket(ticket.id)"></button>
             </div>
           </td>
@@ -60,14 +74,28 @@
 
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="5" class="text-center p-4 text-500">No hay tickets registrados en este grupo</td>
+          <td [attr.colspan]="canEdit || canDelete ? 5 : 4" class="text-center p-6">
+            <i class="pi pi-inbox text-4xl text-surface-500 mb-3 block"></i>
+            <span class="text-surface-500">No hay tickets registrados en este grupo.</span>
+          </td>
         </tr>
       </ng-template>
-
     </p-table>
-
   </div>
 </div>
+
+<ng-template #noPermiso>
+  <div class="flex flex-column align-items-center justify-content-center p-8 text-center h-full fade-in" style="min-height: 400px;">
+    <div class="lock-container mb-4">
+      <i class="pi pi-lock text-6xl text-red-500"></i>
+    </div>
+    <h2 class="text-white text-3xl font-bold">Acceso Denegado</h2>
+    <p class="text-surface-400 max-w-20rem mt-2">
+      No tienes el permiso <strong>ticket:view</strong> asignado en este equipo para consultar las incidencias.
+    </p>
+    <p-button label="Volver al Inicio" icon="pi pi-arrow-left" [text]="true" class="mt-4" routerLink="/home"></p-button>
+  </div>
+</ng-template>
 
 <p-dialog
   [(visible)]="ticketDialog"
@@ -81,39 +109,40 @@
   <form [formGroup]="ticketForm" class="flex flex-column gap-3 mt-3">
 
     <div class="field-group">
-      <label class="font-semibold block mb-2 text-sm text-gray-300">Título del Ticket *</label>
-      <input pInputText formControlName="titulo" class="w-full custom-input" placeholder="Ej: Error en servidor" />
+      <label class="font-semibold block mb-2 text-sm text-surface-300">Título del Ticket *</label>
+      <input pInputText formControlName="titulo" class="w-full custom-input" placeholder="Ej: Error en base de datos" />
     </div>
 
     <div class="field-group">
-      <label class="font-semibold block mb-2 text-sm text-gray-300">Descripción</label>
-      <textarea pInputTextarea rows="3" formControlName="descripcion" class="w-full custom-input" placeholder="Detalles de la falla..."></textarea>
-    </div>
-
-    <div class="flex gap-3 w-full">
-      <div class="field-group flex-1">
-        <label class="font-semibold block mb-2 text-sm text-gray-300">Prioridad</label>
-        <p-select [options]="['Alta','Media','Baja']" formControlName="prioridad" appendTo="body" styleClass="w-full custom-input"></p-select>
-      </div>
+      <label class="font-semibold block mb-2 text-sm text-surface-300">Descripción</label>
+      <textarea pInputTextarea rows="3" formControlName="descripcion" class="w-full custom-input" placeholder="Detalles técnicos de la falla..."></textarea>
     </div>
 
     <div class="field-group">
-      <label class="font-semibold block mb-2 text-sm text-gray-300">Autor</label>
-      <div class="p-inputgroup custom-input-group">
-        <span class="p-inputgroup-addon bg-transparent border-none text-gray-400 pl-3">
+      <label class="font-semibold block mb-2 text-sm text-surface-300">Prioridad</label>
+      <p-select [options]="['Alta','Media','Baja']" formControlName="prioridad" appendTo="body" styleClass="w-full custom-input"></p-select>
+    </div>
+
+    <div class="field-group">
+      <label class="font-semibold block mb-2 text-sm text-surface-300">Autor (Lectura)</label>
+      <div class="p-inputgroup custom-input-group opacity-60">
+        <span class="p-inputgroup-addon bg-transparent border-none text-surface-400 pl-3">
           <i class="pi pi-user"></i>
         </span>
         <input pInputText formControlName="autor" class="custom-input border-none w-full" />
       </div>
     </div>
-
   </form>
 
   <ng-template pTemplate="footer">
     <div class="flex justify-content-end gap-3 mt-4 align-items-center">
       <p-button label="Cancelar" icon="pi pi-times" [text]="true" severity="secondary" (click)="ticketDialog=false"></p-button>
-      <p-button [label]="editingId ? 'Guardar Cambios' : 'Crear Ticket'" icon="pi pi-check" styleClass="custom-blue-btn" (click)="saveTicket()"></p-button>
+      <p-button 
+        [label]="editingId ? 'Guardar Cambios' : 'Crear Ticket'" 
+        icon="pi pi-check" 
+        styleClass="custom-blue-btn" 
+        (click)="saveTicket()">
+      </p-button>
     </div>
   </ng-template>
-
 </p-dialog>

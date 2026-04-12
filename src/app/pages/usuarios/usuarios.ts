@@ -1,3 +1,4 @@
+// src/app/pages/usuarios/usuarios.ts
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -19,18 +20,25 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 export class Usuarios implements OnInit {
 
   usuarios: any[] = [];
-  grupos: any[] = [];
+  gruposDelUsuario: any[] = [];
   cargando = true;
   visible = false;
-  editando = false;
   guardando = false;
-  gruposDelUsuario: any[] = [];
+  
+  // Control de Acciones
+  canEdit = false;
+  canDelete = false;
+  
+  // Poderes del Modal de Permisos
+  canManageGlobalPerms = false; // Requiere user:manage global
+  canManageGroupPerms = false;  // Requiere group:manage o group:edit
+  canOpenShield = false;        // Controla si aparece el botón del escudo
 
-  // Para gestión de permisos por grupo
   permisosDialog = false;
   usuarioSeleccionado: any = null;
+  tipoGestion: 'global' | 'grupo' = 'global'; 
   grupoSeleccionado: any = null;
-  permisosDelUsuario: string[] = [];
+
   permisosDisponibles: string[] = [];
   permisosAsignados: string[] = [];
 
@@ -43,8 +51,6 @@ export class Usuarios implements OnInit {
   ];
 
   usuarioForm: FormGroup;
-
-  canManage = false;
 
   constructor(
     private fb: FormBuilder,
@@ -65,210 +71,146 @@ export class Usuarios implements OnInit {
   }
 
   ngOnInit() {
-    this.canManage = this.permsSvc.hasPermission('user:manage');
+    this.canEdit = this.permsSvc.hasPermission('user:edit');
+    this.canDelete = this.permsSvc.hasPermission('user:delete');
+    
+    // Evaluar acceso a seguridad
+    this.canManageGlobalPerms = this.permsSvc.hasPermission('user:manage');
+    this.canManageGroupPerms = this.permsSvc.hasPermission('group:manage') || this.permsSvc.hasPermission('group:edit');
+    this.canOpenShield = this.canManageGlobalPerms || this.canManageGroupPerms;
+
     this.obtenerUsuarios();
-    this.obtenerGrupos();
   }
 
   obtenerUsuarios() {
     this.cargando = true;
     this.usuariosSvc.getAll().subscribe({
       next: (res: any) => {
-        this.usuarios = Array.isArray(res.data) ? res.data : [];
+        this.usuarios = res.data || [];
         this.cargando = false;
       },
-      error: () => {
-        this.messageSvc.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los usuarios.' });
-        this.cargando = false;
-      }
-    });
-  }
-
-  obtenerGrupos() {
-    this.groupsSvc.getAllGroups().subscribe({
-      next: (res: any) => {
-        this.grupos = Array.isArray(res.data) ? res.data : [];
-      },
-      error: () => {}
+      error: () => this.cargando = false
     });
   }
 
   editarUsuario(usuario: any) {
-    if (!this.canManage) return;
-    this.editando = true;
-    this.usuarioForm.patchValue({
-      id: usuario.id,
-      nombre_completo: usuario.nombre_completo,
-      username: usuario.username,
-      email: usuario.email,
-      direccion: usuario.direccion || '',
-      telefono: usuario.telefono || ''
-    });
+    if (!this.canEdit) return; 
+    this.usuarioForm.patchValue(usuario);
     this.visible = true;
   }
 
   guardarUsuario() {
-    if (this.usuarioForm.invalid) return;
+    if (this.usuarioForm.invalid || !this.canEdit) return;
     this.guardando = true;
     const datos = this.usuarioForm.getRawValue();
 
-    this.usuariosSvc.update(datos.id, {
-      nombre_completo: datos.nombre_completo,
-      username: datos.username,
-      direccion: datos.direccion || null,
-      telefono: datos.telefono || null
-    }).subscribe({
+    this.usuariosSvc.update(datos.id, datos).subscribe({
       next: () => {
-        this.messageSvc.add({ severity: 'success', summary: 'Actualizado', detail: 'Usuario actualizado correctamente.' });
-        this.obtenerUsuarios();
+        this.messageSvc.add({ severity: 'success', summary: 'Éxito', detail: 'Usuario actualizado' });
         this.visible = false;
         this.guardando = false;
+        this.obtenerUsuarios();
       },
-      error: (err) => {
-        this.messageSvc.add({ severity: 'error', summary: 'Error', detail: err.error?.data?.message || 'Error al actualizar.' });
-        this.guardando = false;
-      }
+      error: () => this.guardando = false
     });
   }
 
   confirmarEliminar(usuario: any) {
-    if (!this.canManage) return;
+    if (!this.canDelete) return; 
     this.confirmSvc.confirm({
-      message: `¿Estás seguro de eliminar a ${usuario.nombre_completo}? Esta acción no se puede deshacer.`,
+      message: `¿Estás seguro de eliminar a ${usuario.nombre_completo}?`,
       header: 'Confirmar eliminación',
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Sí, eliminar',
-      rejectLabel: 'Cancelar',
       acceptButtonStyleClass: 'p-button-danger',
       accept: () => {
         this.usuariosSvc.delete(usuario.id).subscribe({
           next: () => {
-            this.messageSvc.add({ severity: 'success', summary: 'Eliminado', detail: 'Usuario eliminado correctamente.' });
+            this.messageSvc.add({ severity: 'success', summary: 'Eliminado', detail: 'Usuario borrado' });
             this.obtenerUsuarios();
-          },
-          error: () => {
-            this.messageSvc.add({ severity: 'error', summary: 'Error', detail: 'No se pudo eliminar el usuario.' });
           }
         });
       }
     });
   }
 
-  // ---- Gestión de permisos por grupo ----
+  // ---- Gestión de permisos ----
   abrirPermisos(usuario: any) {
-    if (!this.canManage) return;
+    if (!this.canOpenShield) return; 
     this.usuarioSeleccionado = usuario;
+    
+    // Si no es admin global, forzamos la vista de grupo
+    this.tipoGestion = this.canManageGlobalPerms ? 'global' : 'grupo';
+    
     this.grupoSeleccionado = null;
+    this.permisosDisponibles = [];
     this.permisosAsignados = [];
-    this.permisosDisponibles = [...this.catalogoPermisos];
-    this.gruposDelUsuario = []; // Limpiamos la lista anterior
-
-    // Consultamos SOLO los grupos a los que pertenece el usuario
+    
     this.groupsSvc.getUserGroups(usuario.id).subscribe({
       next: (res: any) => {
-        // Asumiendo que tu backend devuelve la lista en res.data
-        this.gruposDelUsuario = Array.isArray(res.data) ? res.data : [];
-        
-        // Abrimos el modal HASTA que ya tenemos los grupos cargados
+        this.gruposDelUsuario = res.data || [];
         this.permisosDialog = true;
-      },
-      error: () => {
-        this.messageSvc.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los grupos del usuario.' });
+        this.cargarPermisosActuales();
       }
     });
   }
 
-  onGrupoChange() {
-    if (!this.grupoSeleccionado || !this.usuarioSeleccionado) return;
+  cargarPermisosActuales() {
+    if (!this.usuarioSeleccionado) return;
 
-    this.groupsSvc.getUserPermissions(this.grupoSeleccionado.id, this.usuarioSeleccionado.id).subscribe({
-      next: (res: any) => {
-        const permisosTiene = Array.isArray(res.data)
-          ? res.data.map((p: any) => p.nombre)
-          : [];
-        this.permisosAsignados = permisosTiene;
-        this.permisosDisponibles = this.catalogoPermisos.filter(p => !permisosTiene.includes(p));
-      },
-      error: () => {
-        this.permisosAsignados = [];
-        this.permisosDisponibles = [...this.catalogoPermisos];
-      }
-    });
+    if (this.tipoGestion === 'global' && this.canManageGlobalPerms) {
+      this.usuariosSvc.getGlobalPermissions(this.usuarioSeleccionado.id).subscribe({
+        next: (res: any) => this.mapearPermisos(res.data)
+      });
+    } else if (this.tipoGestion === 'grupo' && this.grupoSeleccionado) {
+      this.groupsSvc.getUserPermissions(this.grupoSeleccionado.id, this.usuarioSeleccionado.id).subscribe({
+        next: (res: any) => this.mapearPermisos(res.data)
+      });
+    } else {
+      this.permisosDisponibles = [];
+      this.permisosAsignados = [];
+    }
   }
 
-  asignarPermiso(permiso: string) {
-    if (!this.grupoSeleccionado || !this.usuarioSeleccionado) return;
+  private mapearPermisos(data: any) {
+    const nombres = Array.isArray(data) ? data.map((p: any) => p.nombre || p.permisos?.nombre) : [];
+    this.permisosAsignados = nombres;
+    const catalogo = (this.tipoGestion === 'global') 
+      ? this.catalogoPermisos 
+      : this.catalogoPermisos.filter(p => p.startsWith('ticket:') || p.startsWith('group:edit') || p === 'group:manage');
+    
+    this.permisosDisponibles = catalogo.filter(p => !nombres.includes(p));
+  }
 
-    this.groupsSvc.assignPermission(
-      this.grupoSeleccionado.id,
-      this.usuarioSeleccionado.id,
-      permiso
-    ).subscribe({
+  onMoveToTarget(event: any) {
+    const permiso = event.items[0];
+    const obs = (this.tipoGestion === 'global')
+      ? this.usuariosSvc.assignGlobalPermission(this.usuarioSeleccionado.id, permiso)
+      : this.groupsSvc.assignPermission(this.grupoSeleccionado.id, this.usuarioSeleccionado.id, permiso);
+
+    obs.subscribe({
       next: () => {
-        this.messageSvc.add({ severity: 'success', summary: 'Asignado', detail: `Permiso ${permiso} asignado.` });
-        this.onGrupoChange();
-      },
-      error: (err) => {
-        this.messageSvc.add({ severity: 'error', summary: 'Error', detail: err.error?.data?.message || 'Error al asignar permiso.' });
+        this.messageSvc.add({ severity: 'success', summary: 'Éxito', detail: `Permiso asignado` });
+        setTimeout(() => this.cargarPermisosActuales(), 200); 
       }
     });
   }
 
-  revocarPermiso(permiso: string) {
-    if (!this.grupoSeleccionado || !this.usuarioSeleccionado) return;
+  onMoveToSource(event: any) {
+    const permiso = event.items[0];
+    const obs = (this.tipoGestion === 'global')
+      ? this.usuariosSvc.revokeGlobalPermission(this.usuarioSeleccionado.id, permiso)
+      : this.groupsSvc.revokePermission(this.grupoSeleccionado.id, this.usuarioSeleccionado.id, permiso);
 
-    this.groupsSvc.revokePermission(
-      this.grupoSeleccionado.id,
-      this.usuarioSeleccionado.id,
-      permiso
-    ).subscribe({
+    obs.subscribe({
       next: () => {
-        this.messageSvc.add({ severity: 'warn', summary: 'Revocado', detail: `Permiso ${permiso} revocado.` });
-        this.onGrupoChange();
-      },
-      error: () => {
-        this.messageSvc.add({ severity: 'error', summary: 'Error', detail: 'Error al revocar permiso.' });
+        this.messageSvc.add({ severity: 'warn', summary: 'Revocado', detail: `Permiso quitado` });
+        setTimeout(() => this.cargarPermisosActuales(), 200);
       }
     });
   }
 
   getLastLogin(fecha: string): string {
-    if (!fecha) return 'Nunca';
-    return new Date(fecha).toLocaleDateString('es-MX', {
-      day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
-    });
-  }
-
-  getPermisosPorCategoria(categoria: string): string[] {
-    return this.catalogoPermisos.filter(p => p.startsWith(categoria + ':'));
-  }
-
-  togglePermiso(permiso: string) {
-    if (this.permisosAsignados.includes(permiso)) {
-      this.revocarPermiso(permiso);
-    } else {
-      this.asignarPermiso(permiso);
-    }
-  }
-
-  // --- NUEVOS MÉTODOS PARA EL DISEÑO DE CHIPS (PANEL VISUAL) ---
-  asignarPermisoChip(permiso: string) {
-    // Primero, hacemos la actualización visual inmediata para que sea fluido
-    this.permisosDisponibles = this.permisosDisponibles.filter(p => p !== permiso);
-    this.permisosAsignados.push(permiso);
-    this.permisosAsignados.sort();
-
-    // Luego, enviamos la petición al servidor usando tu método existente
-    this.asignarPermiso(permiso);
-  }
-
-  removerPermisoChip(permiso: string) {
-    // Primero, actualización visual
-    this.permisosAsignados = this.permisosAsignados.filter(p => p !== permiso);
-    this.permisosDisponibles.push(permiso);
-    this.permisosDisponibles.sort();
-
-    // Luego, enviamos la petición
-    this.revocarPermiso(permiso);
+    return fecha ? new Date(fecha).toLocaleDateString() : 'Nunca';
   }
 }

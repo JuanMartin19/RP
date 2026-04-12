@@ -156,18 +156,24 @@ export class Lista implements OnInit {
     if (!cambioEstado && !cambioDatos) { this.cerrarModal(); return; }
 
     const peticiones: Promise<void>[] = [];
+    
     if (cambioEstado) {
       peticiones.push(new Promise((res, rej) => {
-        this.ticketSvc.changeStatus(this.ticketEditando.id, this.ticketEditando.estado).subscribe({ next: () => res(), error: e => rej(e) });
+        // CORRECCIÓN: Agregamos this.groupId
+        this.ticketSvc.changeStatus(this.ticketEditando.id, this.ticketEditando.estado, this.groupId!)
+          .subscribe({ next: () => res(), error: e => rej(e) });
       }));
     }
+    
     if (cambioDatos) {
       peticiones.push(new Promise((res, rej) => {
+        // CORRECCIÓN AQUÍ: Agregamos grupo_id al payload
         this.ticketSvc.updateTicket(this.ticketEditando.id, {
           titulo: this.ticketEditando.titulo,
           descripcion: this.ticketEditando.descripcion,
           prioridad: this.ticketEditando.prioridad,
-          asignado_id: this.ticketEditando.asignado_id 
+          asignado_id: this.ticketEditando.asignado_id,
+          grupo_id: Number(this.groupId) // <--- ESTO ES LO QUE EL GATEWAY NECESITA
         }).subscribe({ next: () => res(), error: e => rej(e) });
       }));
     }
@@ -183,6 +189,7 @@ export class Lista implements OnInit {
       this.cerrarModal();
       this.messageSvc.add({ severity: 'success', summary: 'Éxito', detail: 'Ticket actualizado.' });
     }).catch(err => {
+      console.error("Error en PATCH:", err);
       this.messageSvc.add({ severity: 'error', summary: 'Error', detail: err.error?.data?.message || 'Error al guardar.' });
     });
   }
@@ -201,10 +208,15 @@ export class Lista implements OnInit {
     this.confirmSvc.confirm({
       message: `¿Eliminar "${ticket.titulo}"?`,
       accept: () => {
-        this.ticketSvc.deleteTicket(ticket.id).subscribe({
+        // CORRECCIÓN: Le pasamos el this.groupId! al servicio
+        this.ticketSvc.deleteTicket(ticket.id, this.groupId!).subscribe({
           next: () => {
             this.tickets = this.tickets.filter(t => t.id !== ticket.id);
             this.aplicarFiltroRapido(this.filtroActivo);
+            this.messageSvc.add({ severity: 'success', summary: 'Eliminado', detail: 'Ticket borrado' });
+          },
+          error: (err) => {
+            this.messageSvc.add({ severity: 'error', summary: 'Error', detail: err.error?.data?.message || 'Error al borrar' });
           }
         });
       }

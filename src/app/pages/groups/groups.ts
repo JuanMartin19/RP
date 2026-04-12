@@ -1,3 +1,4 @@
+// src/app/pages/groups/groups.ts
 import { Component, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -26,12 +27,12 @@ export class Groups implements OnInit {
   guardando = false;
   editingId: number | null = null;
 
-  // Para gestión de miembros
   grupoSeleccionado: any = null;
   miembros: any[] = [];
   todosUsuarios: any[] = [];
   usuarioSeleccionado: any = null;
 
+  // PERMISOS TOTALMENTE GLOBALES OTRA VEZ 💀
   canAdd = false;
   canEdit = false;
   canDelete = false;
@@ -51,10 +52,11 @@ export class Groups implements OnInit {
   ) {}
 
   ngOnInit() {
+    // Volvemos a la lógica original: solo si el sistema te dio el permiso global
     this.canAdd = this.permsSvc.hasPermission('group:add');
     this.canEdit = this.permsSvc.hasPermission('group:edit');
     this.canDelete = this.permsSvc.hasPermission('group:delete');
-    this.canManageMembers = this.permsSvc.hasPermission('group:manage');
+    this.canManageMembers = this.permsSvc.hasPermission('group:edit');
 
     this.cargarGrupos();
     this.cargarUsuarios();
@@ -67,10 +69,7 @@ export class Groups implements OnInit {
         this.groups = Array.isArray(res.data) ? res.data : [];
         this.cargando = false;
       },
-      error: () => {
-        this.messageSvc.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los grupos.' });
-        this.cargando = false;
-      }
+      error: () => this.cargando = false
     });
   }
 
@@ -78,19 +77,19 @@ export class Groups implements OnInit {
     this.usuariosSvc.getAll().subscribe({
       next: (res: any) => {
         this.todosUsuarios = Array.isArray(res.data) ? res.data : [];
-      },
-      error: () => {}
+      }
     });
   }
 
   openNew() {
+    if (!this.canAdd) return;
     this.groupForm.reset();
     this.editingId = null;
     this.groupDialog = true;
   }
 
   editGroup(group: any) {
-    if (!this.canEdit) return;
+    if (!this.canEdit) return; // Bloqueado si no es Admin Global
     this.groupForm.patchValue({
       nombre: group.nombre,
       descripcion: group.descripcion || ''
@@ -100,111 +99,87 @@ export class Groups implements OnInit {
   }
 
   saveGroup() {
-    if (this.groupForm.invalid) return;
-    const data = this.groupForm.value;
+    if (this.groupForm.invalid || (this.editingId ? !this.canEdit : !this.canAdd)) return;
     this.guardando = true;
+    const data = this.groupForm.value;
 
     if (this.editingId) {
       this.groupsSvc.updateGroup(this.editingId, data).subscribe({
         next: () => {
-          this.messageSvc.add({ severity: 'success', summary: 'Actualizado', detail: 'Grupo actualizado correctamente.' });
+          this.messageSvc.add({ severity: 'success', summary: 'Actualizado', detail: 'Grupo actualizado.' });
           this.groupDialog = false;
           this.guardando = false;
           this.cargarGrupos();
         },
-        error: (err) => {
-          this.messageSvc.add({ severity: 'error', summary: 'Error', detail: err.error?.data?.message || 'Error al actualizar.' });
-          this.guardando = false;
-        }
+        error: () => this.guardando = false
       });
     } else {
       this.groupsSvc.createGroup({ nombre: data.nombre!, descripcion: data.descripcion || '' }).subscribe({
         next: () => {
-          this.messageSvc.add({ severity: 'success', summary: 'Creado', detail: 'Grupo creado correctamente.' });
+          this.messageSvc.add({ severity: 'success', summary: 'Creado', detail: 'Grupo creado.' });
           this.groupDialog = false;
           this.guardando = false;
           this.cargarGrupos();
         },
-        error: (err) => {
-          this.messageSvc.add({ severity: 'error', summary: 'Error', detail: err.error?.data?.message || 'Error al crear.' });
-          this.guardando = false;
-        }
+        error: () => this.guardando = false
       });
     }
   }
 
   deleteGroup(group: any) {
-    if (!this.canDelete) return;
+    if (!this.canDelete) return; // Bloqueado si no es Admin Global
     this.groupsSvc.deleteGroup(group.id).subscribe({
       next: () => {
         this.messageSvc.add({ severity: 'success', summary: 'Eliminado', detail: 'Grupo eliminado.' });
         this.cargarGrupos();
-      },
-      error: () => {
-        this.messageSvc.add({ severity: 'error', summary: 'Error', detail: 'No se pudo eliminar el grupo.' });
       }
     });
   }
 
   deleteSelectedGroups() {
     if (!this.canDelete || !this.selectedGroups.length) return;
-    const requests = this.selectedGroups.map(g =>
-      this.groupsSvc.deleteGroup(g.id).toPromise()
-    );
-    Promise.all(requests).then(() => {
-      this.messageSvc.add({ severity: 'success', summary: 'Eliminados', detail: 'Grupos eliminados correctamente.' });
+    const peticiones = this.selectedGroups.map(g => this.groupsSvc.deleteGroup(g.id).toPromise());
+    Promise.all(peticiones).then(() => {
+      this.messageSvc.add({ severity: 'success', summary: 'Éxito', detail: 'Grupos eliminados' });
       this.selectedGroups = [];
       this.cargarGrupos();
-    }).catch(() => {
-      this.messageSvc.add({ severity: 'error', summary: 'Error', detail: 'Error al eliminar algunos grupos.' });
     });
   }
 
-  // ---- Gestión de miembros ----
   openMembers(group: any) {
+    if (!this.canManageMembers) return; // Bloqueado si no es Admin Global
     this.grupoSeleccionado = group;
     this.usuarioSeleccionado = null;
-
     this.groupsSvc.getGroupById(group.id).subscribe({
       next: (res: any) => {
         this.miembros = res.data?.miembros || [];
         this.memberDialog = true;
-      },
-      error: () => {
-        this.messageSvc.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los miembros.' });
       }
     });
   }
 
   agregarMiembro() {
-    if (!this.usuarioSeleccionado || !this.grupoSeleccionado) return;
+    if (!this.canManageMembers || !this.usuarioSeleccionado) return;
     this.groupsSvc.addMember(this.grupoSeleccionado.id, this.usuarioSeleccionado.id).subscribe({
       next: () => {
-        this.messageSvc.add({ severity: 'success', summary: 'Agregado', detail: 'Miembro agregado correctamente.' });
+        this.messageSvc.add({ severity: 'success', summary: 'Agregado', detail: 'Miembro añadido.' });
         this.openMembers(this.grupoSeleccionado);
-        this.usuarioSeleccionado = null;
-      },
-      error: (err) => {
-        this.messageSvc.add({ severity: 'error', summary: 'Error', detail: err.error?.data?.message || 'Error al agregar miembro.' });
       }
     });
   }
 
   removerMiembro(usuarioId: number) {
-    if (!this.grupoSeleccionado) return;
+    if (!this.canManageMembers) return;
     this.groupsSvc.removeMember(this.grupoSeleccionado.id, usuarioId).subscribe({
       next: () => {
-        this.messageSvc.add({ severity: 'success', summary: 'Removido', detail: 'Miembro removido correctamente.' });
+        this.messageSvc.add({ severity: 'success', summary: 'Removido', detail: 'Miembro quitado.' });
         this.openMembers(this.grupoSeleccionado);
-      },
-      error: () => {
-        this.messageSvc.add({ severity: 'error', summary: 'Error', detail: 'No se pudo remover el miembro.' });
       }
     });
   }
 
   getNombreCreador(creador_id: number): string {
-    const u = this.todosUsuarios.find(u => u.id === creador_id);
+    const u = this.todosUsuarios.find(user => user.id === creador_id);
     return u ? u.nombre_completo : `#${creador_id}`;
   }
 }

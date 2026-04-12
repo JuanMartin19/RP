@@ -1,196 +1,102 @@
 <div class="p-4 w-full">
   <p-toast />
   <p-confirmDialog />
-
-  <div class="flex justify-content-between align-items-center mb-4">
-    <div>
-      <h1 class="m-0 text-2xl font-bold">Gestión de Usuarios</h1>
-      <p class="m-0 text-surface-400 mt-1">Administración de cuentas y permisos</p>
-    </div>
+  
+  <div class="mb-4">
+    <h1 class="m-0 text-2xl font-bold text-white">Gestión de Usuarios</h1>
+    <p class="text-surface-400">Control maestro de acceso y seguridad</p>
   </div>
 
-  <div *ngIf="cargando" class="flex flex-column gap-2">
-    <p-skeleton height="50px" *ngFor="let i of [1,2,3,4]" />
-  </div>
-
-  <p-table *ngIf="!cargando"
-    [value]="usuarios"
-    [paginator]="true"
-    [rows]="10"
-    [globalFilterFields]="['nombre_completo', 'email', 'username']"
-    styleClass="custom-table"
-    [rowHover]="true"
-    #dt>
-
-    <ng-template pTemplate="caption">
-      <div class="flex justify-content-between align-items-center">
-        <h3 class="m-0">Total: {{ usuarios.length }} usuarios</h3>
-        <span class="p-input-icon-left">
-          <i class="pi pi-search"></i>
-          <input pInputText type="text"
-                 (input)="dt.filterGlobal($any($event.target).value, 'contains')"
-                 placeholder="Buscar usuario..." />
-        </span>
-      </div>
-    </ng-template>
-
+  <p-table [value]="usuarios" styleClass="custom-table" [loading]="cargando">
     <ng-template pTemplate="header">
       <tr>
-        <th pSortableColumn="nombre_completo">Nombre <p-sortIcon field="nombre_completo" /></th>
-        <th pSortableColumn="email">Email <p-sortIcon field="email" /></th>
+        <th>Nombre</th>
         <th>Usuario</th>
         <th>Último acceso</th>
-        <th *ngIf="canManage" style="width: 150px">Acciones</th>
+        <th style="width: 150px">Acciones</th>
       </tr>
     </ng-template>
-
-    <ng-template pTemplate="body" let-usuario>
+    <ng-template pTemplate="body" let-u>
       <tr>
-        <td class="font-bold">{{ usuario.nombre_completo }}</td>
-        <td class="text-surface-400">{{ usuario.email }}</td>
-        <td>@{{ usuario.username }}</td>
-        <td class="text-surface-400 text-sm">{{ getLastLogin(usuario.last_login) }}</td>
-        <td *ngIf="canManage">
-          <div class="flex gap-1">
-            <p-button icon="pi pi-pencil" severity="info" [text]="true"
-                      size="small" pTooltip="Editar datos"
-                      (onClick)="editarUsuario(usuario)" />
-                      
-            <p-button icon="pi pi-shield" severity="warn" [text]="true"
-                      size="small" pTooltip="Gestionar permisos"
-                      (onClick)="abrirPermisos(usuario)" />
-                      
-            <p-button icon="pi pi-trash" severity="danger" [text]="true"
-                      size="small" pTooltip="Eliminar"
-                      (onClick)="confirmarEliminar(usuario)" />
+        <td class="text-white font-bold">{{ u.nombre_completo }}</td>
+        <td class="text-blue-400">@{{ u.username }}</td>
+        <td class="text-sm text-surface-400">{{ getLastLogin(u.last_login) }}</td>
+        <td>
+          <div class="flex gap-2">
+            <p-button *ngIf="canOpenShield" icon="pi pi-shield" [text]="true" 
+                      severity="warn" pTooltip="Permisos" (onClick)="abrirPermisos(u)" />
+            
+            <p-button *ngIf="canEdit" icon="pi pi-pencil" [text]="true" 
+                      pTooltip="Editar" (onClick)="editarUsuario(u)" />
+
+            <p-button *ngIf="canDelete" icon="pi pi-trash" [text]="true" 
+                      severity="danger" pTooltip="Eliminar" (onClick)="confirmarEliminar(u)" />
           </div>
         </td>
       </tr>
     </ng-template>
-
-    <ng-template pTemplate="emptymessage">
-      <tr>
-        <td colspan="5" class="text-center p-4 text-surface-400">
-          No hay usuarios registrados.
-        </td>
-      </tr>
-    </ng-template>
-
   </p-table>
 
-  <p-dialog [(visible)]="visible"
-            header="Editar Usuario"
-            [modal]="true" [style]="{ width: '480px' }"
-            [draggable]="false" [resizable]="false">
+  <p-dialog [(visible)]="permisosDialog" [header]="'Seguridad: ' + usuarioSeleccionado?.nombre_completo" [modal]="true" [style]="{ width: '850px' }">
+    
+    <div class="flex gap-4 mb-4 bg-gray-900 p-3 border-round border-1 border-gray-700" *ngIf="canManageGlobalPerms">
+      <div class="flex align-items-center">
+        <p-radioButton name="tipo" value="global" [(ngModel)]="tipoGestion" inputId="t1" (onClick)="cargarPermisosActuales()" />
+        <label for="t1" class="ml-2 cursor-pointer font-bold text-blue-400">Permisos Globales</label>
+      </div>
+      
+      <div class="flex align-items-center">
+        <p-radioButton name="tipo" value="grupo" [(ngModel)]="tipoGestion" inputId="t2" (onClick)="cargarPermisosActuales()" />
+        <label for="t2" class="ml-2 cursor-pointer font-bold text-green-400">Permisos por Grupo</label>
+      </div>
+    </div>
 
+    <div class="mb-3 text-green-400 font-italic text-sm" *ngIf="!canManageGlobalPerms">
+      <i class="pi pi-info-circle"></i> Gestionando permisos específicos para los grupos de trabajo.
+    </div>
+
+    <div class="mb-4" *ngIf="tipoGestion === 'grupo'">
+      <p-select [options]="gruposDelUsuario" [(ngModel)]="grupoSeleccionado" optionLabel="nombre" 
+                placeholder="Selecciona un grupo..." class="w-full" (onChange)="cargarPermisosActuales()" appendTo="body" />
+    </div>
+
+    <div class="mt-4" *ngIf="tipoGestion === 'global' || (tipoGestion === 'grupo' && grupoSeleccionado)">
+      <p-pickList [source]="permisosDisponibles" [target]="permisosAsignados" 
+                  [dragdrop]="true" [responsive]="true" [showSourceControls]="false" [showTargetControls]="false"
+                  (onMoveToTarget)="onMoveToTarget($event)" (onMoveToSource)="onMoveToSource($event)">
+        <ng-template let-p pTemplate="item">
+          <div class="flex align-items-center gap-2">
+            <i class="pi pi-key text-xs opacity-50"></i>
+            <span>{{ p }}</span>
+          </div>
+        </ng-template>
+      </p-pickList>
+    </div>
+  </p-dialog>
+
+  <p-dialog [(visible)]="visible" header="Editar Datos de Usuario" [modal]="true" [style]="{ width: '450px' }">
     <form [formGroup]="usuarioForm" class="flex flex-column gap-3 mt-3">
       <div class="flex flex-column gap-1">
-        <label class="text-sm text-surface-400">Nombre completo *</label>
-        <input pInputText formControlName="nombre_completo" class="w-full" />
+        <label class="text-xs font-bold text-surface-400 uppercase">Nombre Completo</label>
+        <input pInputText formControlName="nombre_completo" />
       </div>
       <div class="flex flex-column gap-1">
-        <label class="text-sm text-surface-400">Usuario *</label>
-        <input pInputText formControlName="username" class="w-full" />
+        <label class="text-xs font-bold text-surface-400 uppercase">Username</label>
+        <input pInputText formControlName="username" />
       </div>
       <div class="flex flex-column gap-1">
-        <label class="text-sm text-surface-400">Email (no editable)</label>
-        <input pInputText formControlName="email" class="w-full opacity-50" />
+        <label class="text-xs font-bold text-surface-400 uppercase">Dirección</label>
+        <input pInputText formControlName="direccion" />
       </div>
       <div class="flex flex-column gap-1">
-        <label class="text-sm text-surface-400">Dirección</label>
-        <input pInputText formControlName="direccion" class="w-full" />
+        <label class="text-xs font-bold text-surface-400 uppercase">Teléfono</label>
+        <input pInputText formControlName="telefono" />
       </div>
-      <div class="flex flex-column gap-1">
-        <label class="text-sm text-surface-400">Teléfono</label>
-        <input pInputText formControlName="telefono" class="w-full" maxlength="10" />
+      
+      <div class="flex justify-content-end gap-2 mt-2">
+        <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="visible = false" />
+        <p-button label="Guardar Cambios" icon="pi pi-save" [loading]="guardando" (onClick)="guardarUsuario()" />
       </div>
     </form>
-
-    <ng-template pTemplate="footer">
-      <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="visible = false" />
-      <p-button label="Guardar" icon="pi pi-save" severity="success"
-                [loading]="guardando" (onClick)="guardarUsuario()" />
-    </ng-template>
   </p-dialog>
-
-  <p-dialog [(visible)]="permisosDialog"
-            [header]="'Permisos — ' + (usuarioSeleccionado?.nombre_completo || '')"
-            [modal]="true" [style]="{ width: '750px' }"
-            [draggable]="false" [resizable]="false">
-
-    <div class="mb-4">
-      <label class="text-sm text-surface-400 block mb-2">
-        <i class="pi pi-users mr-1"></i> Selecciona el grupo
-      </label>
-      
-      <p-select [options]="gruposDelUsuario" 
-                [(ngModel)]="grupoSeleccionado"
-                optionLabel="nombre" 
-                placeholder="— Elige un grupo —"
-                class="w-full" 
-                (onChange)="onGrupoChange()"
-                appendTo="body" />
-    </div>
-
-    <div *ngIf="grupoSeleccionado">
-      <p-divider />
-
-      <div class="col-12 mt-2 p-0">
-        <label class="block mb-3 font-bold text-blue-400 border-bottom-1 border-gray-700 pb-2">
-            <i class="pi pi-key mr-2"></i>Gestión Visual de Permisos (RBAC)
-        </label>
-
-        <div class="grid m-0">
-            <div class="col-12 md:col-6 p-2">
-                <div class="p-3 border-round h-full" style="background-color: rgba(34, 197, 94, 0.05); border: 1px solid rgba(34, 197, 94, 0.2); min-height: 200px;">
-                    <h4 class="mt-0 mb-3 text-green-400 flex align-items-center">
-                        <i class="pi pi-check-circle mr-2"></i>Asignados ({{ permisosAsignados.length }})
-                    </h4>
-                    <p class="text-sm text-500 mb-3" *ngIf="permisosAsignados.length > 0">Click para revocar</p>
-                    
-                    <div *ngIf="permisosAsignados.length === 0" class="text-center text-500 py-4 font-italic text-sm">
-                        Este usuario no tiene permisos asignados.
-                    </div>
-
-                    <div class="flex flex-wrap gap-2">
-                        <p-chip *ngFor="let permiso of permisosAsignados" 
-                                [label]="permiso" 
-                                styleClass="cursor-pointer bg-green-900 text-green-100 hover:bg-green-800 transition-colors duration-200 border-1 border-green-700" 
-                                icon="pi pi-check"
-                                (click)="removerPermisoChip(permiso)">
-                        </p-chip>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-12 md:col-6 p-2">
-                <div class="p-3 border-round h-full" style="background-color: rgba(96, 165, 250, 0.05); border: 1px solid rgba(96, 165, 250, 0.2); min-height: 200px;">
-                    <h4 class="mt-0 mb-3 text-blue-400 flex align-items-center">
-                        <i class="pi pi-list mr-2"></i>Disponibles ({{ permisosDisponibles.length }})
-                    </h4>
-                    <p class="text-sm text-500 mb-3" *ngIf="permisosDisponibles.length > 0">Click para asignar</p>
-
-                    <div *ngIf="permisosDisponibles.length === 0" class="text-center text-500 py-4 font-italic text-sm">
-                        Tiene todos los permisos posibles.
-                    </div>
-
-                    <div class="flex flex-wrap gap-2">
-                        <p-chip *ngFor="let permiso of permisosDisponibles" 
-                                [label]="permiso" 
-                                styleClass="cursor-pointer bg-gray-800 text-300 hover:bg-blue-900 hover:text-blue-100 transition-colors duration-200 border-1 border-gray-700 hover:border-blue-700" 
-                                icon="pi pi-plus"
-                                (click)="asignarPermisoChip(permiso)">
-                        </p-chip>
-                    </div>
-                </div>
-            </div>
-        </div>
-      </div>
-    </div>
-
-    <ng-template pTemplate="footer">
-      <p-button label="Cerrar" severity="secondary" (onClick)="permisosDialog = false" />
-    </ng-template>
-  </p-dialog>
-
 </div>

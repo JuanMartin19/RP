@@ -122,34 +122,35 @@ export class Kanban implements OnInit {
   }
 
   drop(estadoDestino: string) {
-    if (!this.draggedTicket || this.draggedTicket.estado === estadoDestino) {
-      this.draggedTicket = null;
-      return;
-    }
-
-    const index = this.tickets.findIndex(t => t.id === this.draggedTicket.id);
-    const estadoAnterior = this.tickets[index].estado;
-
-    // Optimistic UI
-    this.tickets[index].estado = estadoDestino;
-
-    this.ticketSvc.changeStatus(this.draggedTicket.id, estadoDestino).subscribe({
-      next: () => {
-        this.messageSvc.add({
-          severity: 'success',
-          summary: 'Movido',
-          detail: `Ticket pasado a "${estadoDestino}".`
-        });
-      },
-      error: (err) => {
-        // Revertir si falla
-        this.tickets[index].estado = estadoAnterior;
-        const msg = err.error?.data?.message || 'No puedes mover este ticket.';
-        this.messageSvc.add({ severity: 'error', summary: 'Sin permiso', detail: msg });
+      if (!this.draggedTicket || this.draggedTicket.estado === estadoDestino) {
+        this.draggedTicket = null;
+        return;
       }
-    });
 
-    this.draggedTicket = null;
+      const index = this.tickets.findIndex(t => t.id === this.draggedTicket.id);
+      const estadoAnterior = this.tickets[index].estado;
+
+      // Optimistic UI
+      this.tickets[index].estado = estadoDestino;
+
+      // CORRECCIÓN: Ahora enviamos this.groupId
+      this.ticketSvc.changeStatus(this.draggedTicket.id, estadoDestino, this.groupId!).subscribe({
+        next: () => {
+          this.messageSvc.add({
+            severity: 'success',
+            summary: 'Movido',
+            detail: `Ticket pasado a "${estadoDestino}".`
+          });
+        },
+        error: (err) => {
+          // Revertir si falla
+          this.tickets[index].estado = estadoAnterior;
+          const msg = err.error?.data?.message || 'No puedes mover este ticket.';
+          this.messageSvc.add({ severity: 'error', summary: 'Sin permiso', detail: msg });
+        }
+      });
+
+      this.draggedTicket = null;
   }
 
   dragEnd() {

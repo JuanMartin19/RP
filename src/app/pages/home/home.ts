@@ -76,9 +76,11 @@ export class Home implements OnInit, OnDestroy {
     });
   }
 
+  // src/app/pages/home/home.ts
+// ... (mismo inicio hasta cargarGrupos)
+
   seleccionarGrupo(grupo: any) {
-    const permisosPorGrupo = this.authSvc.getPermisosPorGrupoDelToken();
-    this.permsSvc.refreshPermissionsForGroup(grupo.id, permisosPorGrupo);
+    this.permsSvc.refreshPermissionsForGroup(grupo.id);
     this.router.navigate(['/dashboard', grupo.id, 'resumen']);
   }
 }

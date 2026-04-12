@@ -1,50 +1,56 @@
+// src/app/services/permissions.service.ts
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 
+interface PermissionStructure {
+  global: string[];
+  grupos: Record<string, string[]>;
+}
+
 @Injectable({ providedIn: 'root' })
 export class PermissionsService {
+  private permissionsSubject = new BehaviorSubject<PermissionStructure | null>(null);
+  // Exponemos el observable para el Home
+  permissions$ = this.permissionsSubject.asObservable();
 
-  // Permisos globales — NUNCA se sobreescriben después del login
-  private allPermissionsSubject = new BehaviorSubject<string[] | null>(null);
-  permissions$: Observable<string[] | null> = this.allPermissionsSubject.asObservable();
+  private activeGrupoPermissionsSubject = new BehaviorSubject<string[]>([]);
+  activeGrupoPermissions$ = this.activeGrupoPermissionsSubject.asObservable();
 
-  // Permisos del grupo activo — solo para uso dentro del dashboard
-  private grupoPermissionsSubject = new BehaviorSubject<string[]>([]);
-  grupoPermissions$: Observable<string[]> = this.grupoPermissionsSubject.asObservable();
+  constructor() {}
 
-  setPermissions(permissions: string[]) {
-    this.allPermissionsSubject.next(permissions);
+  setPermissions(permissions: PermissionStructure) {
+    this.permissionsSubject.next(permissions);
   }
 
-  // Solo actualiza los permisos del grupo — NO toca los globales
-  refreshPermissionsForGroup(grupoId: string | number, permisosPorGrupo: Record<string, string[]>) {
-    const permisos = permisosPorGrupo[String(grupoId)] || [];
-    this.grupoPermissionsSubject.next(permisos);
+  refreshPermissionsForGroup(grupoId: string | number) {
+    const all = this.permissionsSubject.value;
+    if (!all) {
+      this.activeGrupoPermissionsSubject.next([]);
+      return;
+    }
+    const permisosDelGrupo = all.grupos[String(grupoId)] || [];
+    this.activeGrupoPermissionsSubject.next(permisosDelGrupo);
   }
 
-  // Usa permisos GLOBALES — para sidebar y rutas
   hasPermission(permission: string): boolean {
-    const current = this.allPermissionsSubject.value;
-    return current ? current.includes(permission) : false;
-  }
-
-  hasAnyPermission(requiredPermissions: string[]): boolean {
-    const current = this.allPermissionsSubject.value;
+    const current = this.permissionsSubject.value;
     if (!current) return false;
-    return requiredPermissions.some(p => current.includes(p));
+    if (current.global.includes(permission)) return true;
+    return this.activeGrupoPermissionsSubject.value.includes(permission);
   }
 
-  // Usa permisos del GRUPO ACTIVO — para botones dentro del dashboard
-  hasGrupoPermission(permission: string): boolean {
-    return this.grupoPermissionsSubject.value.includes(permission);
+  // Nuevo: para la directiva [ifHasPermission]
+  hasAnyPermission(requiredPermissions: string[]): boolean {
+    return requiredPermissions.some(p => this.hasPermission(p));
   }
 
+  // Nuevo: para el Home
   isLoaded(): boolean {
-    return this.allPermissionsSubject.value !== null;
+    return this.permissionsSubject.value !== null;
   }
 
   clearPermissions() {
-    this.allPermissionsSubject.next(null);
-    this.grupoPermissionsSubject.next([]);
+    this.permissionsSubject.next(null);
+    this.activeGrupoPermissionsSubject.next([]);
   }
 }

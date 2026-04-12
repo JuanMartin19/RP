@@ -6,6 +6,7 @@ import { ActivatedRoute } from '@angular/router';
 import { PrimeImportsModule } from '../../prime-imports';
 import { TicketService } from '../../services/ticket.service';
 import { AuthService } from '../../services/auth.service';
+import { PermissionsService } from '../../services/permissions.service'; // IMPORTANTE
 import { MessageService } from 'primeng/api';
 
 @Component({
@@ -32,88 +33,103 @@ export class Ticket implements OnInit {
     descripcion: new FormControl('', { nonNullable: true })
   });
 
-  canView = true;
-  canAdd = true;
-  canEdit = true;
-  canDelete = true;
+  // VARIABLES DE PERMISOS DINÁMICAS
+  canView = false;
+  canAdd = false;
+  canEdit = false;
+  canDelete = false;
 
   constructor(
     private route: ActivatedRoute,
     private ticketSvc: TicketService,
     private authSvc: AuthService,
+    private permsSvc: PermissionsService, // INYECTAR
     private messageSvc: MessageService
   ) {}
 
   ngOnInit() {
-    // IMPORTANTE: Buscamos el ID en el padre de la ruta actual
-    // ya que la URL es dashboard/:id/ticket
     this.groupId = this.route.parent?.snapshot.paramMap.get('id') || null;
 
     if (this.groupId) {
-      this.cargarTicketsDelGrupo();
-    } else {
-      this.cargando = false;
-      this.messageSvc.add({ 
-        severity: 'error', 
-        summary: 'Error', 
-        detail: 'No se pudo identificar el grupo actual.' 
-      });
+      // 1. CARGAR PERMISOS REALES DEL USUARIO
+      this.validarPermisos();
+      
+      if (this.canView) {
+        this.cargarTicketsDelGrupo();
+      } else {
+        this.cargando = false;
+      }
     }
+  }
+
+  validarPermisos() {
+    // Usamos el servicio de permisos que ya sabe en qué grupo estamos
+    this.canView = this.permsSvc.hasPermission('ticket:view');
+    this.canAdd = this.permsSvc.hasPermission('ticket:add');
+    this.canEdit = this.permsSvc.hasPermission('ticket:edit');
+    this.canDelete = this.permsSvc.hasPermission('ticket:delete');
   }
 
   cargarTicketsDelGrupo() {
     this.cargando = true;
-    // Llamamos al servicio pasando el ID dinámico capturado
     this.ticketSvc.getTicketsByGroup(this.groupId!).subscribe({
       next: (res: any) => {
-        // Filtramos para asegurarnos que solo vengan los de este grupo
-        // (Aunque el backend ya debería filtrarlos, esto es seguridad extra)
         this.tickets = res.data || [];
         this.cargando = false;
       },
       error: () => {
-        this.messageSvc.add({ 
-          severity: 'error', 
-          summary: 'Error', 
-          detail: 'Error al cargar tickets de este grupo.' 
-        });
         this.cargando = false;
       }
     });
   }
 
   saveTicket() {
-    if (this.ticketForm.invalid || !this.groupId) return;
+    // AÑADIDO: Alerta visual si el formulario es inválido
+    if (this.ticketForm.invalid) {
+      this.messageSvc.add({ severity: 'warn', summary: 'Atención', detail: 'Por favor completa los campos obligatorios (Título).' });
+      return;
+    }
+    
+    if (!this.groupId) return;
 
     const data = this.ticketForm.getRawValue();
+    
     const payload = {
       titulo: data.titulo,
       descripcion: data.descripcion,
       prioridad: data.prioridad,
-      grupo_id: Number(this.groupId) // Usamos el ID del grupo actual
+      grupo_id: Number(this.groupId) 
     };
 
     if (this.editingId) {
+      if (!this.canEdit) return;
       this.ticketSvc.updateTicket(this.editingId, payload).subscribe({
         next: () => {
           this.messageSvc.add({ severity: 'success', summary: 'Éxito', detail: 'Ticket actualizado' });
           this.cargarTicketsDelGrupo();
           this.ticketDialog = false;
+        },
+        error: (err) => {
+          this.messageSvc.add({ severity: 'error', summary: 'Error', detail: err.error?.data?.message || 'Error al editar' });
         }
       });
     } else {
+      if (!this.canAdd) return;
       this.ticketSvc.createTicket(payload).subscribe({
         next: () => {
-          this.messageSvc.add({ severity: 'success', summary: 'Éxito', detail: 'Ticket creado' });
+          this.messageSvc.add({ severity: 'success', summary: 'Éxito', detail: 'Ticket creado correctamente' });
           this.cargarTicketsDelGrupo();
           this.ticketDialog = false;
+        },
+        error: (err) => {
+          this.messageSvc.add({ severity: 'error', summary: 'Error', detail: err.error?.data?.message || 'Error al crear' });
         }
       });
     }
   }
 
-  // ... (editTicket, deleteTicket, severities se mantienen igual)
   editTicket(ticket: any) {
+    if (!this.canEdit) return;
     this.editingId = ticket.id;
     this.ticketForm.patchValue({
       titulo: ticket.titulo,
@@ -126,15 +142,22 @@ export class Ticket implements OnInit {
   }
 
   deleteTicket(id: number) {
+    if (!this.canDelete) return;
     if (!confirm('¿Seguro que deseas eliminar este ticket?')) return;
-    this.ticketSvc.deleteTicket(id).subscribe({
+    
+    // CORRECCIÓN: Ahora le pasamos el this.groupId! al servicio
+    this.ticketSvc.deleteTicket(id, this.groupId!).subscribe({
       next: () => {
         this.tickets = this.tickets.filter(t => t.id !== id);
-        this.messageSvc.add({ severity: 'success', summary: 'Eliminado' });
+        this.messageSvc.add({ severity: 'success', summary: 'Eliminado', detail: 'Ticket borrado exitosamente' });
+      },
+      error: (err) => {
+        this.messageSvc.add({ severity: 'error', summary: 'Error', detail: err.error?.data?.message || 'No se pudo eliminar' });
       }
     });
   }
 
+  // ... (getSeverities y openNew se mantienen igual)
   getEstadoSeverity(estado: string): any {
     if (estado === 'Pendiente') return 'warn';
     if (estado === 'En Progreso') return 'info';
@@ -148,6 +171,7 @@ export class Ticket implements OnInit {
   }
 
   openNew() {
+    if (!this.canAdd) return;
     const user = this.authSvc.getUser();
     this.ticketForm.reset({ 
       estado: 'Pendiente', 

@@ -1,0 +1,180 @@
+/* Contenedor principal: Ocupa todo el alto disponible debajo de la navbar global */
+.dashboard-layout {
+    display: flex;
+    height: calc(100vh - 64px); /* Ajusta este valor al alto de tu navbar superior */
+    background-color: #0a0e14;
+    color: #e2e8f0;
+    overflow: hidden;
+}
+
+/* --- SIDEBAR DEL PROYECTO --- */
+.sidebar-menu {
+    width: 260px;
+    background: linear-gradient(180deg, #111827 0%, #0f172a 100%);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem 1rem;
+    gap: 2rem;
+}
+
+/* Info del Grupo arriba del sidebar */
+.group-info-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+}
+
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: white;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.name-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.group-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+
+.status-badge {
+    font-size: 0.7rem;
+    color: #10b981;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.status-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: #10b981;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 8px #10b981;
+}
+
+/* Ítems del Menú */
+.menu-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0.85rem 1rem;
+    text-decoration: none;
+    color: #94a3b8;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.menu-item i {
+    font-size: 1.1rem;
+}
+
+.menu-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #f8fafc;
+}
+
+/* Estado activo del link */
+.active-link {
+    background: rgba(59, 130, 246, 0.1) !important;
+    color: #3b82f6 !important;
+    font-weight: 500;
+    border-left: 3px solid #3b82f6;
+    border-radius: 4px 10px 10px 4px;
+}
+
+/* --- ÁREA DE CONTENIDO PRINCIPAL --- */
+.dashboard-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2rem;
+    background-color: #0f172a;
+}
+
+/* Scrollbar personalizada para que no se vea fea */
+.dashboard-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.dashboard-content::-webkit-scrollbar-thumb {
+    background: #1e293b;
+    border-radius: 10px;
+}
+
+.fade-in {
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.sidebar-menu {
+    display: flex;
+    flex-direction: column; /* Asegura que podamos empujar el footer al fondo */
+}
+
+.flex-1 {
+    flex: 1; /* Esto empuja el sidebar-footer hacia abajo */
+}
+
+.sidebar-footer {
+    padding: 1rem 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.quick-add-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0.85rem 1rem;
+    background: #3b82f6; /* Azul primario */
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.quick-add-btn:hover {
+    background: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(59, 130, 246, 0.3);
+}
+
+.quick-add-btn i {
+    font-size: 1.1rem;
+}

@@ -40,12 +40,15 @@ export class TicketService {
     return this.http.patch(`${this.apiUrl}/${id}`, data);
   }
 
-  changeStatus(id: string | number, estado: string): Observable<any> {
-    return this.http.patch(`${this.apiUrl}/${id}/status`, { estado });
+  changeStatus(id: number | string, estado: string, grupo_id: number | string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${id}/status`, { 
+        estado: estado,
+        grupo_id: Number(grupo_id) // Enviamos el grupo_id para que el Gateway no de 403
+    });
   }
 
-  deleteTicket(id: string | number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`);
+  deleteTicket(id: string | number, grupo_id: string | number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}?grupo_id=${grupo_id}`);
   }
 
   addComment(ticketId: string | number, texto: string): Observable<any> {

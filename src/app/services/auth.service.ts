@@ -60,14 +60,13 @@ export class AuthService {
     return !!this.getToken();
   }
 
-  extraerPermisosDelToken(token: string): string[] {
+  extraerPermisosDelToken(token: string): any {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
-      const permisosPorGrupo: Record<string, string[]> = payload.permisos || {};
-      const todos = Object.values(permisosPorGrupo).flat();
-       return [...new Set(todos)];
+      // Ajustamos para que siempre devuelva la estructura esperada
+      return payload.permisos || { global: [], grupos: {} };
     } catch {
-      return [];
+      return { global: [], grupos: {} };
     }
   }
 
@@ -76,7 +75,7 @@ export class AuthService {
       const token = this.getToken();
       if (!token) return {};
       const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.permisos || {};
+      return payload.permisos?.grupos || {};
     } catch {
       return {};
     }
