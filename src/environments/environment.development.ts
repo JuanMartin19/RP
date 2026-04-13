@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: 'https://erp-api-gateway-e3ee.onrender.com'
+  apiUrl: 'https://erp-api-gateway-e3ee.onrender.com' // (o localhost:3000)
 };
