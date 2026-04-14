@@ -1,85 +1,79 @@
-<div class="p-4 w-full fade-in">
+<div class="dashboard-wrapper fade-in">
   <p-toast></p-toast>
 
-  <div class="flex flex-row justify-content-between align-items-center mb-5">
-    <div>
-      <h2 class="m-0 text-white text-2xl font-bold">Resumen del Proyecto</h2>
-      <p class="text-surface-400 text-sm mt-1">Métricas y actividad reciente del equipo</p>
-    </div>
+  <div class="dashboard-header mb-5">
+    <h2 class="title text-white font-bold m-0 text-3xl">Resumen del Proyecto</h2>
+    <p class="subtitle text-surface-400 mt-2 text-sm">Métricas en tiempo real y actividad reciente del equipo.</p>
   </div>
 
-  <div *ngIf="cargando" class="flex flex-column gap-4">
-    <div class="grid formgrid">
-      <div class="col-12 md:col-6 lg:col-3 mb-3" *ngFor="let i of [1,2,3,4]">
-        <p-skeleton height="110px" borderRadius="12px"></p-skeleton>
-      </div>
+  <div *ngIf="cargando" class="flex flex-column gap-5">
+    <div class="native-grid-stats">
+      <p-skeleton height="120px" borderRadius="16px" *ngFor="let i of [1,2,3,4]"></p-skeleton>
     </div>
-    <div class="grid formgrid mt-4">
-      <div class="col-12 md:col-4 mb-3" *ngFor="let i of [1,2,3]">
-        <p-skeleton height="150px" borderRadius="12px"></p-skeleton>
-      </div>
+    <div class="native-grid-tickets">
+      <p-skeleton height="180px" borderRadius="16px" *ngFor="let i of [1,2,3]"></p-skeleton>
     </div>
   </div>
 
   <div *ngIf="!cargando">
     
-    <div class="grid formgrid mb-6">
-      <div class="col-12 md:col-6 lg:col-3 p-2" *ngFor="let stat of estadisticas">
-        <div class="surface-card p-4 border-round shadow-2 flex flex-row justify-content-between align-items-center hover-card h-full" [ngClass]="stat.borderClass">
-          <div class="flex flex-column">
-            <span class="block text-surface-400 font-medium mb-2 text-sm uppercase tracking-wide">{{ stat.label }}</span>
-            <div class="text-white font-bold text-4xl">{{ stat.value }}</div>
-          </div>
-          <i [class]="stat.icon + ' text-4xl opacity-80 ' + stat.color"></i>
+    <div class="native-grid-stats mb-6">
+      <div class="premium-stat-card" *ngFor="let stat of estadisticas">
+        <div class="stat-info">
+          <span class="stat-label">{{ stat.label }}</span>
+          <span class="stat-value">{{ stat.value }}</span>
         </div>
+        <div class="stat-icon-wrapper" [style.color]="stat.color" [style.backgroundColor]="stat.bg">
+          <i [class]="stat.icon + ' text-2xl'"></i>
+        </div>
+        <div class="stat-bottom-line" [style.backgroundColor]="stat.color"></div>
       </div>
     </div>
 
-    <div>
-      <h3 class="text-xl text-white font-semibold mb-4 border-bottom-1 surface-border pb-2">Actividad Reciente</h3>
+    <div class="recent-activity-section">
+      <div class="flex align-items-center mb-4">
+        <i class="pi pi-list text-surface-400 mr-2 text-xl"></i>
+        <h3 class="text-xl text-white font-semibold m-0">Actividad Reciente</h3>
+      </div>
       
-      <div *ngIf="ticketsRecientes.length === 0" class="text-center p-6 surface-card border-round border-1 surface-border">
-        <i class="pi pi-inbox text-4xl text-surface-500 mb-3 block"></i>
-        <span class="text-surface-500">No hay tickets recientes en este grupo.</span>
+      <div *ngIf="ticketsRecientes.length === 0" class="empty-state">
+        <i class="pi pi-inbox text-5xl text-surface-500 mb-3"></i>
+        <span class="text-surface-400">No hay tickets recientes en este grupo.</span>
       </div>
 
-      <div class="grid formgrid">
-        <div class="col-12 md:col-6 lg:col-4 p-2" *ngFor="let ticket of ticketsRecientes">
+      <div class="native-grid-tickets">
+        <div class="premium-ticket-card" *ngFor="let ticket of ticketsRecientes">
           
-          <div class="surface-card p-4 border-round border-1 surface-border hover-card flex flex-column h-full shadow-1">
-            
-            <div class="flex flex-row justify-content-between align-items-center mb-3">
-              <span class="text-surface-400 text-sm font-semibold">#{{ ticket.id }}</span>
-              <p-tag [value]="ticket.prioridad" [severity]="getPrioridadSeverity(ticket.prioridad)"></p-tag>
-            </div>
+          <div class="ticket-header">
+            <span class="ticket-id">#{{ ticket.id }}</span>
+            <p-tag [value]="ticket.prioridad" [severity]="getPrioridadSeverity(ticket.prioridad)"></p-tag>
+          </div>
 
-            <div class="text-white font-medium text-lg mb-4 flex-1 line-height-3">{{ ticket.titulo }}</div>
+          <div class="ticket-title">{{ ticket.titulo }}</div>
 
-            <div class="flex flex-row justify-content-between align-items-end mt-auto pt-3 border-top-1 surface-border">
-              
-              <div class="flex flex-row align-items-center gap-2" [pTooltip]="ticket.asignado?.nombre_completo || 'Sin asignar'">
-                <div class="border-circle flex align-items-center justify-content-center" style="width: 32px; height: 32px; background-color: var(--primary-color);">
-                  <span class="text-sm font-bold text-white">{{ getIniciales(ticket.asignado?.nombre_completo) }}</span>
-                </div>
-                <div class="flex flex-column">
-                  <span class="text-surface-400 text-xs font-semibold uppercase" style="font-size: 0.65rem;">Asignado a</span>
-                  <span class="text-surface-200 text-sm" style="max-width: 100px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                    {{ ticket.asignado?.nombre_completo || 'Nadie' }}
-                  </span>
-                </div>
+          <div class="ticket-footer">
+            <div class="flex align-items-center gap-2" [pTooltip]="ticket.asignado?.nombre_completo || 'Sin asignar'">
+              <div class="ticket-avatar">
+                {{ getIniciales(ticket.asignado?.nombre_completo) }}
               </div>
-              
-              <div class="flex flex-column align-items-end gap-2">
-                <span class="text-surface-400 text-xs font-medium flex align-items-center gap-1">
-                  <i class="pi pi-calendar"></i>
-                  {{ ticket.creado_en | date:'dd-MMM' }}
+              <div class="flex flex-column">
+                <span class="text-xs text-surface-500 uppercase font-semibold" style="font-size: 0.65rem;">Asignado</span>
+                <span class="text-sm text-surface-200 text-truncate" style="max-width: 110px;">
+                  {{ ticket.asignado?.nombre_completo || 'Nadie' }}
                 </span>
-                <p-tag [value]="ticket.estado" [severity]="getEstadoSeverity(ticket.estado)"></p-tag>
               </div>
-
+            </div>
+            
+            <div class="flex flex-column align-items-end gap-2">
+              <span class="ticket-date">
+                <i class="pi pi-calendar text-xs"></i>
+                {{ ticket.creado_en | date:'dd MMM' }}
+              </span>
+              <p-tag [value]="ticket.estado" [severity]="getEstadoSeverity(ticket.estado)"></p-tag>
             </div>
           </div>
-          </div>
+
+        </div>
       </div>
     </div>
 

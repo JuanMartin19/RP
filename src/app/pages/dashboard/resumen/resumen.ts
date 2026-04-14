@@ -45,12 +45,11 @@ export class Resumen implements OnInit {
         const tickets = Array.isArray(res.data) ? res.data : [];
         
         this.generarEstadisticas(tickets);
-        // Solo mostramos los últimos 3 o 6 para que la grilla de tarjetas cuadre perfecto
         this.ticketsRecientes = tickets.slice(0, 6); 
         this.cargando = false;
       },
       error: () => {
-        this.messageSvc.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los tickets del grupo.' });
+        this.messageSvc.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los tickets.' });
         this.cargando = false;
       }
     });
@@ -62,12 +61,12 @@ export class Resumen implements OnInit {
     const progreso = tickets.filter(t => t.estado === 'En Progreso').length;
     const completados = tickets.filter(t => t.estado === 'Completado').length;
 
-    // Actualizado con los bordes superiores exactos de las columnas del Kanban
+    // Configuración Premium de colores (Texto y Fondo translúcido)
     this.estadisticas = [
-      { label: 'Total Tickets', value: total, icon: 'pi pi-ticket', color: 'text-primary', borderClass: 'border-top-3 border-primary' },
-      { label: 'Pendientes', value: pendientes, icon: 'pi pi-clock', color: 'text-400', borderClass: 'border-top-3 surface-border' },
-      { label: 'En Progreso', value: progreso, icon: 'pi pi-spin pi-spinner', color: 'text-blue-400', borderClass: 'border-top-3 border-blue-500' },
-      { label: 'Completados', value: completados, icon: 'pi pi-check-circle', color: 'text-green-400', borderClass: 'border-top-3 border-green-500' }
+      { label: 'Total Tickets', value: total, icon: 'pi pi-ticket', color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.15)' },
+      { label: 'Pendientes', value: pendientes, icon: 'pi pi-clock', color: '#f97316', bg: 'rgba(249, 115, 22, 0.15)' },
+      { label: 'En Progreso', value: progreso, icon: 'pi pi-spin pi-spinner', color: '#0ea5e9', bg: 'rgba(14, 165, 233, 0.15)' },
+      { label: 'Completados', value: completados, icon: 'pi pi-check-circle', color: '#22c55e', bg: 'rgba(34, 197, 94, 0.15)' }
     ];
   }
 
@@ -83,9 +82,8 @@ export class Resumen implements OnInit {
     return 'info';
   }
 
-  // Helper para sacar las iniciales del avatar
   getIniciales(nombre: string): string {
-    if (!nombre) return 'SA'; // Sin Asignar
+    if (!nombre) return 'SA';
     const partes = nombre.split(' ');
     if (partes.length >= 2) return (partes[0][0] + partes[1][0]).toUpperCase();
     return nombre.substring(0, 2).toUpperCase();
