@@ -12,7 +12,7 @@
       </div>
     </ng-template>
 
-    <form [formGroup]="loginForm" class="flex flex-column gap-4 pt-2" (submit)="$event.preventDefault()" (keyup.enter)="login()">
+    <form [formGroup]="loginForm" class="flex flex-column gap-4 pt-2" (ngSubmit)="login()">
 
       <p-message *ngIf="mensaje" [severity]="tipoMensaje || 'info'" [text]="mensaje" styleClass="w-full" />
 
@@ -38,8 +38,8 @@
       </div>
 
       <div class="mt-4 flex flex-column align-items-center gap-3">
-        <p-button label="Ingresar" icon="pi pi-sign-in" styleClass="submit-btn" 
-                  [loading]="cargando" (click)="login()" />
+        <p-button type="submit" label="Ingresar" icon="pi pi-sign-in" styleClass="submit-btn" 
+                  [loading]="cargando" />
 
         <p class="register-link">
           ¿No tienes cuenta? <a routerLink="/register">Regístrate aquí</a>
