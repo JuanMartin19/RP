@@ -1,65 +1,91 @@
-<div class="resumen-container">
+<div class="p-4 w-full fade-in">
   <p-toast></p-toast>
 
-  <div *ngIf="cargando" class="flex flex-column gap-4">
-    <div class="stats-grid">
-      <p-skeleton height="120px" borderRadius="16px" *ngFor="let i of [1,2,3,4]"></p-skeleton>
-    </div>
-    <p-skeleton width="100%" height="250px" borderRadius="16px" class="mt-4"></p-skeleton>
-  </div>
-
-  <div *ngIf="!cargando">
+  <div class="surface-card p-4 border-round shadow-2 main-card">
     
-    <div class="mb-4">
-      <h1 class="page-title">Resumen del Proyecto</h1>
-      <p class="page-subtitle">Métricas y actividad reciente</p>
-    </div>
-
-    <div class="stats-grid">
-      <div *ngFor="let stat of estadisticas" class="stat-card glass-panel" [ngClass]="stat.borderClass">
-        <div class="stat-content">
-          <span class="stat-title">{{ stat.label }}</span>
-          <span class="stat-value">{{ stat.value }}</span>
-        </div>
+    <div class="flex justify-content-between align-items-center mb-5">
+      <div>
+        <h2 class="m-0 text-white text-2xl font-bold">Resumen del Proyecto</h2>
+        <p class="text-surface-400 text-sm">Métricas y actividad reciente del equipo</p>
       </div>
     </div>
 
-    <div class="table-container mt-5 glass-panel">
-      <h3 class="table-title mb-3">Tickets Recientes</h3>
-      
-      <p-table [value]="ticketsRecientes" styleClass="glass-table" [rowHover]="true">
-        
-        <ng-template pTemplate="header">
-          <tr>
-            <th style="width: 100px;">ID</th>
-            <th>Título</th>
-            <th>Estado</th>
-            <th>Prioridad</th>
-          </tr>
-        </ng-template>
-        
-        <ng-template pTemplate="body" let-ticket>
-          <tr>
-            <td class="font-bold opacity-80">#{{ ticket.id }}</td>
-            <td class="font-semibold">{{ ticket.titulo }}</td>
-            <td>
-              <span class="status-badge">{{ ticket.estado }}</span>
-            </td>
-            <td>{{ ticket.prioridad }}</td>
-          </tr>
-        </ng-template>
-
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td colspan="4" class="text-center p-5 opacity-70">
-              <i class="pi pi-inbox text-3xl mb-2 block"></i>
-              No hay tickets registrados en este grupo.
-            </td>
-          </tr>
-        </ng-template>
-        
-      </p-table>
+    <div *ngIf="cargando" class="flex flex-column gap-4">
+      <div class="grid">
+        <div class="col-12 md:col-6 lg:col-3" *ngFor="let i of [1,2,3,4]">
+          <p-skeleton height="100px" borderRadius="12px"></p-skeleton>
+        </div>
+      </div>
+      <p-skeleton width="100%" height="250px" borderRadius="12px" class="mt-4"></p-skeleton>
     </div>
 
+    <div *ngIf="!cargando">
+      
+      <div class="grid mb-5">
+        <div class="col-12 md:col-6 lg:col-3" *ngFor="let stat of estadisticas">
+          <div class="surface-ground p-3 border-round-xl border-1 surface-border flex justify-content-between align-items-center hover-card">
+            <div>
+              <span class="block text-surface-400 font-medium mb-2 text-sm uppercase">{{ stat.label }}</span>
+              <div class="text-white font-bold text-4xl">{{ stat.value }}</div>
+            </div>
+            <div class="flex align-items-center justify-content-center border-round" [ngClass]="stat.bg" style="width: 3.5rem; height: 3.5rem">
+              <i [class]="stat.icon + ' text-2xl ' + stat.color"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-5">
+        <h3 class="text-xl text-white font-semibold mb-3 border-bottom-1 surface-border pb-2">Tickets Recientes</h3>
+        
+        <p-table 
+          [value]="ticketsRecientes" 
+          styleClass="custom-table" 
+          [rowHover]="true"
+          responsiveLayout="stack">
+          
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 100px;">ID</th>
+              <th>Título</th>
+              <th>Estado</th>
+              <th>Prioridad</th>
+            </tr>
+          </ng-template>
+          
+          <ng-template pTemplate="body" let-ticket>
+            <tr>
+              <td class="text-surface-400 font-medium">
+                <span class="p-column-title">ID</span>
+                #{{ ticket.id }}
+              </td>
+              <td class="font-bold text-white">
+                <span class="p-column-title">Título</span>
+                {{ ticket.titulo }}
+              </td>
+              <td>
+                <span class="p-column-title">Estado</span>
+                <p-tag [value]="ticket.estado" [severity]="getEstadoSeverity(ticket.estado)"></p-tag>
+              </td>
+              <td>
+                <span class="p-column-title">Prioridad</span>
+                <p-tag [value]="ticket.prioridad" [severity]="getPrioridadSeverity(ticket.prioridad)"></p-tag>
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="4" class="text-center p-6">
+                <i class="pi pi-inbox text-4xl text-surface-500 mb-3 block"></i>
+                <span class="text-surface-500">No hay tickets registrados en este grupo.</span>
+              </td>
+            </tr>
+          </ng-template>
+          
+        </p-table>
+      </div>
+
+    </div>
   </div>
 </div>

@@ -9,7 +9,7 @@ import { MessageService } from 'primeng/api';
   selector: 'app-resumen',
   standalone: true,
   imports: [CommonModule, PrimeImportsModule],
-  providers: [MessageService], // Importante para usar los Toasts
+  providers: [MessageService],
   templateUrl: './resumen.html',
   styleUrl: './resumen.css'
 })
@@ -28,7 +28,6 @@ export class Resumen implements OnInit {
   ) {}
 
   ngOnInit() {
-    // Al ser una ruta hija, buscamos el ID del grupo en la ruta padre
     this.groupId = this.route.parent?.snapshot.paramMap.get('id') || null;
 
     if (this.groupId) {
@@ -43,12 +42,9 @@ export class Resumen implements OnInit {
     this.cargando = true;
     this.ticketSvc.getTicketsByGroup(this.groupId!).subscribe({
       next: (res: any) => {
-        // Tu backend devuelve la lista en res.data
         const tickets = Array.isArray(res.data) ? res.data : [];
         
         this.generarEstadisticas(tickets);
-        
-        // Guardamos los últimos 5 tickets para la tabla (el backend ya los manda ordenados por creado_en DESC)
         this.ticketsRecientes = tickets.slice(0, 5);
         this.cargando = false;
       },
@@ -61,16 +57,29 @@ export class Resumen implements OnInit {
 
   generarEstadisticas(tickets: any[]) {
     const total = tickets.length;
-    // Filtramos usando los estados exactos definidos en tu base de datos
     const pendientes = tickets.filter(t => t.estado === 'Pendiente').length;
     const progreso = tickets.filter(t => t.estado === 'En Progreso').length;
     const completados = tickets.filter(t => t.estado === 'Completado').length;
 
+    // Actualizado para usar clases de colores de PrimeFlex compatibles con tema oscuro
     this.estadisticas = [
-      { label: 'Total', value: total, borderClass: 'border-orange' },
-      { label: 'Pendientes', value: pendientes, borderClass: 'border-blue' },
-      { label: 'En Progreso', value: progreso, borderClass: 'border-yellow' },
-      { label: 'Completados', value: completados, borderClass: 'border-green' }
+      { label: 'Total Tickets', value: total, icon: 'pi pi-ticket', color: 'text-purple-400', bg: 'bg-purple-500/10' },
+      { label: 'Pendientes', value: pendientes, icon: 'pi pi-clock', color: 'text-orange-400', bg: 'bg-orange-500/10' },
+      { label: 'En Progreso', value: progreso, icon: 'pi pi-spin pi-spinner', color: 'text-blue-400', bg: 'bg-blue-500/10' },
+      { label: 'Completados', value: completados, icon: 'pi pi-check-circle', color: 'text-green-400', bg: 'bg-green-500/10' }
     ];
+  }
+
+  // Funciones importadas de tu pantalla de tickets para mantener coherencia visual
+  getEstadoSeverity(estado: string): any {
+    if (estado === 'Pendiente') return 'warn';
+    if (estado === 'En Progreso') return 'info';
+    return 'success';
+  }
+
+  getPrioridadSeverity(prioridad: string): any {
+    if (prioridad === 'Alta') return 'danger';
+    if (prioridad === 'Media') return 'warn';
+    return 'info';
   }
 }

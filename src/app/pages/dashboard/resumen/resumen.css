@@ -1,165 +1,30 @@
-/* src/app/pages/dashboard/resumen/resumen.css */
-
-/* CONFIGURACIÓN DEL FONDO OBLIGATORIO */
+/* Limpiamos el fondo naranja para que respete el contenedor global (Router Outlet) */
 :host {
     display: block;
-    min-height: 100%;
-    background-color: #F54927; /* REQUERIMIENTO CUMPLIDO: Fondo principal */
-    margin: -2rem; 
-    padding: 2.5rem;
-    color: #ffffff;
 }
 
-.resumen-container {
-    display: flex;
-    flex-direction: column;
-    animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+/* Animación de entrada suave */
+.fade-in {
+    animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* HEADER */
-.page-title {
-    font-size: 2.2rem;
-    font-weight: 800;
-    margin: 0;
-    letter-spacing: -0.5px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+/* Efecto de las tarjetas de métricas */
+.hover-card {
+    transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
-.page-subtitle {
-    color: rgba(255, 255, 255, 0.85);
-    font-size: 1.05rem;
-    margin-top: 0.3rem;
-    font-weight: 400;
-}
-
-/* UTILIDAD GLASSMORPHISM: Aplica a todo contenedor que queramos hacer translúcido */
-.glass-panel {
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 16px;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
-}
-
-/* TARJETAS DE MÉTRICAS */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1.5rem;
-}
-
-.stat-card {
-    padding: 1.8rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.2s ease, background 0.2s ease;
-}
-
-.stat-card:hover {
+.hover-card:hover {
     transform: translateY(-4px);
-    background: rgba(255, 255, 255, 0.22);
+    background-color: var(--surface-hover);
 }
 
-/* Líneas decorativas (esto reemplaza tus clases de border) */
-.stat-card::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 6px;
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 8px 0 0 8px;
-}
-
-.stat-content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.stat-title {
-    font-size: 0.95rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: rgba(255, 255, 255, 0.9);
-    font-weight: 600;
-}
-
-.stat-value {
-    font-size: 3rem;
-    font-weight: 900;
-    line-height: 1;
-    color: #ffffff;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-
-/* TABLA GLASSMORPHISM */
-.table-container {
-    padding: 1.5rem;
-}
-
-.table-title {
-    font-size: 1.3rem;
-    font-weight: 700;
-    margin: 0 0 1rem 0;
-    color: #ffffff;
-}
-
-/* Ajustes profundos a la tabla de PrimeNG para el tema translúcido */
-::ng-deep .glass-table .p-datatable-wrapper {
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-::ng-deep .glass-table .p-datatable-thead > tr > th {
-    background: rgba(0, 0, 0, 0.2) !important; /* Cabecera un poco más oscura */
-    color: #ffffff !important;
-    border: none !important;
-    font-weight: 600;
-    padding: 1rem !important;
-    text-transform: uppercase;
-    font-size: 0.85rem;
-    letter-spacing: 0.5px;
-}
-
-::ng-deep .glass-table .p-datatable-tbody > tr {
-    background: transparent !important;
-    color: #ffffff !important;
-    transition: background-color 0.2s;
-}
-
-::ng-deep .glass-table .p-datatable-tbody > tr:hover {
-    background: rgba(255, 255, 255, 0.1) !important;
-}
-
-::ng-deep .glass-table .p-datatable-tbody > tr > td {
-    border: none !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-    padding: 1.2rem 1rem !important;
-}
-
-::ng-deep .glass-table .p-datatable-tbody > tr:last-child > td {
-    border-bottom: none !important;
-}
-
-/* Insignia simple para el estado */
-.status-badge {
-    padding: 0.35rem 0.8rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-}
-
-/* Animación */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(15px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { 
+        opacity: 0; 
+        transform: translateY(15px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
 }
