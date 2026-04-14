@@ -1,7 +1,7 @@
 <div class="p-4 w-full fade-in">
   <p-toast></p-toast>
 
-  <div class="flex justify-content-between align-items-center mb-5">
+  <div class="flex flex-row justify-content-between align-items-center mb-5">
     <div>
       <h2 class="m-0 text-white text-2xl font-bold">Resumen del Proyecto</h2>
       <p class="text-surface-400 text-sm mt-1">Métricas y actividad reciente del equipo</p>
@@ -9,13 +9,13 @@
   </div>
 
   <div *ngIf="cargando" class="flex flex-column gap-4">
-    <div class="grid">
-      <div class="col-12 md:col-6 lg:col-3" *ngFor="let i of [1,2,3,4]">
+    <div class="grid formgrid">
+      <div class="col-12 md:col-6 lg:col-3 mb-3" *ngFor="let i of [1,2,3,4]">
         <p-skeleton height="110px" borderRadius="12px"></p-skeleton>
       </div>
     </div>
-    <div class="grid mt-4">
-      <div class="col-12 md:col-4" *ngFor="let i of [1,2,3]">
+    <div class="grid formgrid mt-4">
+      <div class="col-12 md:col-4 mb-3" *ngFor="let i of [1,2,3]">
         <p-skeleton height="150px" borderRadius="12px"></p-skeleton>
       </div>
     </div>
@@ -23,14 +23,14 @@
 
   <div *ngIf="!cargando">
     
-    <div class="grid mb-6">
-      <div class="col-12 md:col-6 lg:col-3" *ngFor="let stat of estadisticas">
-        <div class="surface-card p-4 border-round shadow-2 flex justify-content-between align-items-center hover-card" [ngClass]="stat.borderClass">
-          <div>
+    <div class="grid formgrid mb-6">
+      <div class="col-12 md:col-6 lg:col-3 p-2" *ngFor="let stat of estadisticas">
+        <div class="surface-card p-4 border-round shadow-2 flex flex-row justify-content-between align-items-center hover-card h-full" [ngClass]="stat.borderClass">
+          <div class="flex flex-column">
             <span class="block text-surface-400 font-medium mb-2 text-sm uppercase tracking-wide">{{ stat.label }}</span>
             <div class="text-white font-bold text-4xl">{{ stat.value }}</div>
           </div>
-          <i [class]="stat.icon + ' text-3xl opacity-80 ' + stat.color"></i>
+          <i [class]="stat.icon + ' text-4xl opacity-80 ' + stat.color"></i>
         </div>
       </div>
     </div>
@@ -43,31 +43,34 @@
         <span class="text-surface-500">No hay tickets recientes en este grupo.</span>
       </div>
 
-      <div class="grid">
-        <div class="col-12 md:col-6 lg:col-4" *ngFor="let ticket of ticketsRecientes">
+      <div class="grid formgrid">
+        <div class="col-12 md:col-6 lg:col-4 p-2" *ngFor="let ticket of ticketsRecientes">
           
-          <div class="surface-card p-3 border-round border-1 surface-border hover-card flex flex-column h-full shadow-1">
+          <div class="surface-card p-4 border-round border-1 surface-border hover-card flex flex-column h-full shadow-1">
             
-            <div class="flex justify-content-between align-items-center mb-3">
+            <div class="flex flex-row justify-content-between align-items-center mb-3">
               <span class="text-surface-400 text-sm font-semibold">#{{ ticket.id }}</span>
               <p-tag [value]="ticket.prioridad" [severity]="getPrioridadSeverity(ticket.prioridad)"></p-tag>
             </div>
 
             <div class="text-white font-medium text-lg mb-4 flex-1 line-height-3">{{ ticket.titulo }}</div>
 
-            <div class="flex justify-content-between align-items-end mt-auto pt-3 border-top-1 surface-border">
+            <div class="flex flex-row justify-content-between align-items-end mt-auto pt-3 border-top-1 surface-border">
               
-              <div class="flex align-items-center gap-2" [pTooltip]="ticket.asignado?.nombre_completo || 'Sin asignar'">
-                <div class="border-circle bg-primary-reverse flex align-items-center justify-content-center" style="width: 28px; height: 28px; background-color: var(--primary-color);">
-                  <span class="text-xs font-bold text-white">{{ getIniciales(ticket.asignado?.nombre_completo) }}</span>
+              <div class="flex flex-row align-items-center gap-2" [pTooltip]="ticket.asignado?.nombre_completo || 'Sin asignar'">
+                <div class="border-circle flex align-items-center justify-content-center" style="width: 32px; height: 32px; background-color: var(--primary-color);">
+                  <span class="text-sm font-bold text-white">{{ getIniciales(ticket.asignado?.nombre_completo) }}</span>
                 </div>
-                <span class="text-surface-400 text-sm" style="max-width: 90px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                  {{ ticket.asignado?.nombre_completo || 'Sin Asignar' }}
-                </span>
+                <div class="flex flex-column">
+                  <span class="text-surface-400 text-xs font-semibold uppercase" style="font-size: 0.65rem;">Asignado a</span>
+                  <span class="text-surface-200 text-sm" style="max-width: 100px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    {{ ticket.asignado?.nombre_completo || 'Nadie' }}
+                  </span>
+                </div>
               </div>
               
               <div class="flex flex-column align-items-end gap-2">
-                <span class="text-surface-400 text-xs flex align-items-center gap-1">
+                <span class="text-surface-400 text-xs font-medium flex align-items-center gap-1">
                   <i class="pi pi-calendar"></i>
                   {{ ticket.creado_en | date:'dd-MMM' }}
                 </span>
