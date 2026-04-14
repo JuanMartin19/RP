@@ -45,7 +45,8 @@ export class Resumen implements OnInit {
         const tickets = Array.isArray(res.data) ? res.data : [];
         
         this.generarEstadisticas(tickets);
-        this.ticketsRecientes = tickets.slice(0, 5);
+        // Solo mostramos los últimos 3 o 6 para que la grilla de tarjetas cuadre perfecto
+        this.ticketsRecientes = tickets.slice(0, 6); 
         this.cargando = false;
       },
       error: () => {
@@ -61,16 +62,15 @@ export class Resumen implements OnInit {
     const progreso = tickets.filter(t => t.estado === 'En Progreso').length;
     const completados = tickets.filter(t => t.estado === 'Completado').length;
 
-    // Actualizado para usar clases de colores de PrimeFlex compatibles con tema oscuro
+    // Actualizado con los bordes superiores exactos de las columnas del Kanban
     this.estadisticas = [
-      { label: 'Total Tickets', value: total, icon: 'pi pi-ticket', color: 'text-purple-400', bg: 'bg-purple-500/10' },
-      { label: 'Pendientes', value: pendientes, icon: 'pi pi-clock', color: 'text-orange-400', bg: 'bg-orange-500/10' },
-      { label: 'En Progreso', value: progreso, icon: 'pi pi-spin pi-spinner', color: 'text-blue-400', bg: 'bg-blue-500/10' },
-      { label: 'Completados', value: completados, icon: 'pi pi-check-circle', color: 'text-green-400', bg: 'bg-green-500/10' }
+      { label: 'Total Tickets', value: total, icon: 'pi pi-ticket', color: 'text-primary', borderClass: 'border-top-3 border-primary' },
+      { label: 'Pendientes', value: pendientes, icon: 'pi pi-clock', color: 'text-400', borderClass: 'border-top-3 surface-border' },
+      { label: 'En Progreso', value: progreso, icon: 'pi pi-spin pi-spinner', color: 'text-blue-400', borderClass: 'border-top-3 border-blue-500' },
+      { label: 'Completados', value: completados, icon: 'pi pi-check-circle', color: 'text-green-400', borderClass: 'border-top-3 border-green-500' }
     ];
   }
 
-  // Funciones importadas de tu pantalla de tickets para mantener coherencia visual
   getEstadoSeverity(estado: string): any {
     if (estado === 'Pendiente') return 'warn';
     if (estado === 'En Progreso') return 'info';
@@ -81,5 +81,13 @@ export class Resumen implements OnInit {
     if (prioridad === 'Alta') return 'danger';
     if (prioridad === 'Media') return 'warn';
     return 'info';
+  }
+
+  // Helper para sacar las iniciales del avatar
+  getIniciales(nombre: string): string {
+    if (!nombre) return 'SA'; // Sin Asignar
+    const partes = nombre.split(' ');
+    if (partes.length >= 2) return (partes[0][0] + partes[1][0]).toUpperCase();
+    return nombre.substring(0, 2).toUpperCase();
   }
 }

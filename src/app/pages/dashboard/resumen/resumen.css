@@ -1,27 +1,32 @@
-/* Limpiamos el fondo naranja para que respete el contenedor global (Router Outlet) */
 :host {
     display: block;
 }
 
-/* Animación de entrada suave */
+/* Animación suave al cargar la vista */
 .fade-in {
     animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Efecto de las tarjetas de métricas */
+/* Efecto de elevación al pasar el mouse sobre las tarjetas */
 .hover-card {
-    transition: transform 0.2s ease, background-color 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .hover-card:hover {
     transform: translateY(-4px);
-    background-color: var(--surface-hover);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2) !important;
+    border-color: var(--primary-color) !important;
+}
+
+/* Ajuste sutil para que las letras se vean nítidas */
+.tracking-wide {
+    letter-spacing: 0.05em;
 }
 
 @keyframes fadeIn {
     from { 
         opacity: 0; 
-        transform: translateY(15px); 
+        transform: translateY(10px); 
     }
     to { 
         opacity: 1; 
