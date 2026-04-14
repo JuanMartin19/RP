@@ -1,4 +1,3 @@
-// src/app/app.routes.ts
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
 import { guestGuard } from './guards/guest.guard';
@@ -29,7 +28,7 @@ export const routes: Routes = [
   // --- RUTAS PRIVADAS (Vigiladas por authGuard) ---
   {
     path: '',
-    canActivate: [authGuard],
+    canActivate: [authGuard], // <-- Este guardia protege a TODOS los hijos de aquí abajo
     loadComponent: () => import('./layouts/main-layout/main-layout').then(m => m.MainLayout),
     children: [
       {
@@ -61,7 +60,6 @@ export const routes: Routes = [
             path: 'gestion',
             loadComponent: () => import('./pages/dashboard/gestion/gestion').then(m => m.Gestion)
           },
-          // CORRECCIÓN: La ruta ticket AHORA es hija directa del dashboard/:id
           {
             path: 'ticket', 
             loadComponent: () => import('./pages/ticket/ticket').then(m => m.Ticket)
@@ -86,7 +84,6 @@ export const routes: Routes = [
       }
     ]
   },
-  
   {
     path: '**',
     redirectTo: 'login'

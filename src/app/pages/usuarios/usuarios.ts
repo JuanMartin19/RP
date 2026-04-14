@@ -7,6 +7,7 @@ import { PrimeImportsModule } from '../../prime-imports';
 import { PermissionsService } from '../../services/permissions.service';
 import { UsuariosService } from '../../services/usuarios.service';
 import { GroupsService } from '../../services/groups.service';
+import { AuthService } from '../../services/auth.service'; // <-- IMPORTAMOS AuthService
 import { MessageService, ConfirmationService } from 'primeng/api';
 
 @Component({
@@ -30,9 +31,9 @@ export class Usuarios implements OnInit {
   canDelete = false;
   
   // Poderes del Modal de Permisos
-  canManageGlobalPerms = false; // Requiere user:manage global
-  canManageGroupPerms = false;  // Requiere group:manage o group:edit
-  canOpenShield = false;        // Controla si aparece el botón del escudo
+  canManageGlobalPerms = false; 
+  canManageGroupPerms = false;  
+  canOpenShield = false;        
 
   permisosDialog = false;
   usuarioSeleccionado: any = null;
@@ -57,6 +58,7 @@ export class Usuarios implements OnInit {
     private permsSvc: PermissionsService,
     private usuariosSvc: UsuariosService,
     private groupsSvc: GroupsService,
+    private authSvc: AuthService, // <-- LO INYECTAMOS AQUÍ
     private messageSvc: MessageService,
     private confirmSvc: ConfirmationService
   ) {
@@ -126,8 +128,27 @@ export class Usuarios implements OnInit {
       accept: () => {
         this.usuariosSvc.delete(usuario.id).subscribe({
           next: () => {
-            this.messageSvc.add({ severity: 'success', summary: 'Eliminado', detail: 'Usuario borrado' });
-            this.obtenerUsuarios();
+            // ==========================================
+            // LÓGICA DE AUTO-KICK AL LOGIN
+            // ==========================================
+            const miUsuario = this.authSvc.getUser();
+            const currentUserId = miUsuario ? Number(miUsuario.id || miUsuario.sub) : 0;
+            const deletedUserId = Number(usuario.id);
+
+            // Si se borró a sí mismo...
+            if (currentUserId === deletedUserId) {
+              this.messageSvc.add({ severity: 'warn', summary: 'Aviso', detail: 'Has eliminado tu propia cuenta.' });
+              
+              // Le damos medio segundo para que vea el mensaje y lo pateamos al login
+              setTimeout(() => {
+                this.authSvc.logout(); // Esta función ya borra cookies y te manda a /login
+              }, 500);
+
+            } else {
+              // Si borró a alguien más, seguimos normal
+              this.messageSvc.add({ severity: 'success', summary: 'Eliminado', detail: 'Usuario borrado' });
+              this.obtenerUsuarios();
+            }
           }
         });
       }
