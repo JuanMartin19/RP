@@ -1,35 +1,30 @@
-// src/app/interceptors/error.interceptor.ts
 import { HttpInterceptorFn } from '@angular/common/http';
-import { inject, Injector } from '@angular/core'; // <-- Importamos Injector
+import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
-import { AuthService } from '../app/services/auth.service';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const messageSvc = inject(MessageService);
-  
-  // Usamos el inyector de Angular en lugar de inyectar el servicio directamente
-  const injector = inject(Injector); 
 
   return next(req).pipe(
     catchError((error) => {
-      // Si el backend nos lanza un 401 (No autorizado) o 403 (Prohibido)
-      if (error.status === 401 || error.status === 403) {
+      // Ignoramos el 401 aquí porque authInterceptor ya lo maneja
+      if (error.status === 403) {
         
-        // ¡Magia! Obtenemos el AuthService solo en el momento en que hay un error.
-        // Esto rompe la dependencia circular.
-        const authSvc = injector.get(AuthService);
+        // Borramos cookies directamente
+        document.cookie = `access_token=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`;
+        document.cookie = `user=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`;
         
-        authSvc.logout(); 
+        router.navigate(['/login']);
 
         setTimeout(() => {
           messageSvc.add({ 
             severity: 'error', 
             summary: 'Acceso Denegado', 
-            detail: error.error?.data?.message || 'Tus permisos han cambiado o tu cuenta fue desactivada.' 
+            detail: error.error?.data?.message || 'Tus permisos han cambiado.' 
           });
         }, 100);
       }
