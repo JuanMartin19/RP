@@ -7,11 +7,12 @@ import { providePrimeNG } from 'primeng/config';
 import Lara from '@primeuix/themes/lara';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from '../interceptors/auth.interceptor';
+import { errorInterceptor } from '../interceptors/error.interceptor'; 
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])),
     provideAnimationsAsync(),
     providePrimeNG({ theme: { preset: Lara } }),
   ],

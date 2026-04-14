@@ -1,3 +1,4 @@
+// src/app/services/auth.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
@@ -63,7 +64,6 @@ export class AuthService {
   extraerPermisosDelToken(token: string): any {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
-      // Ajustamos para que siempre devuelva la estructura esperada
       return payload.permisos || { global: [], grupos: {} };
     } catch {
       return { global: [], grupos: {} };
