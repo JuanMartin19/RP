@@ -1,3 +1,4 @@
+// src/app/pages/ticket/ticket.ts
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -36,7 +37,6 @@ export class Ticket implements OnInit {
     fecha_limite: new FormControl<Date | null>(null)
   });
 
-  // VARIABLES DE PERMISOS DINÁMICAS
   canView = false;
   canAdd = false;
   canEdit = false;
@@ -54,7 +54,7 @@ export class Ticket implements OnInit {
     this.groupId = this.route.parent?.snapshot.paramMap.get('id') || null;
 
     if (this.groupId) {
-      this.validarPermisosAvanzado(); // <-- LLAMAMOS A LA NUEVA FUNCIÓN
+      this.validarPermisosEstrictos(); // <-- Usamos la nueva lógica literal
       
       if (this.canView) {
         this.cargarTicketsDelGrupo();
@@ -65,8 +65,8 @@ export class Ticket implements OnInit {
     }
   }
 
-  // NUEVA FUNCIÓN: LECTURA DIRECTA DEL TOKEN PARA SEGURIDAD MILITAR
-  validarPermisosAvanzado() {
+  // NUEVA LÓGICA: 100% LITERAL. Si no está en la lista asignada, no hay botón.
+  validarPermisosEstrictos() {
     const token = this.authSvc.getToken();
     if (!token) return;
     
@@ -74,18 +74,14 @@ export class Ticket implements OnInit {
     const globales = payload.global || [];
     const delGrupo = (payload.grupos && payload.grupos[this.groupId!]) ? payload.grupos[this.groupId!] : [];
 
-    // Helper para no repetir código: Revisa si tiene "ticket:manage" (admin total) o el permiso específico
-    const tienePermiso = (permiso: string) => {
-      return globales.includes('ticket:manage') || 
-             delGrupo.includes('ticket:manage') || 
-             globales.includes(permiso) || 
-             delGrupo.includes(permiso);
+    const tienePermisoExacto = (permiso: string) => {
+      return globales.includes(permiso) || delGrupo.includes(permiso);
     };
 
-    this.canView = tienePermiso('ticket:view');
-    this.canAdd = tienePermiso('ticket:add');
-    this.canEdit = tienePermiso('ticket:edit');
-    this.canDelete = tienePermiso('ticket:delete');
+    this.canView = tienePermisoExacto('ticket:view');
+    this.canAdd = tienePermisoExacto('ticket:add');
+    this.canEdit = tienePermisoExacto('ticket:edit');
+    this.canDelete = tienePermisoExacto('ticket:delete');
   }
 
   cargarTicketsDelGrupo() {

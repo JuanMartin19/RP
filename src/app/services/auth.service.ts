@@ -93,6 +93,20 @@ export class AuthService {
     return match ? decodeURIComponent(match[2]) : null;
   }
 
+  refreshToken(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/refresh`).pipe(
+      tap((res: any) => {
+        if (res?.data?.token) {
+          // Sobrescribimos la cookie vieja con el token fresco
+          this.setCookie('access_token', res.data.token, 8);
+          this.setCookie('user', JSON.stringify(res.data.user), 8);
+          const permisos = this.extraerPermisosDelToken(res.data.token);
+          this.permsSvc.setPermissions(permisos);
+        }
+      })
+    );
+  }
+
   private deleteCookie(name: string) {
     document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/`;
   }

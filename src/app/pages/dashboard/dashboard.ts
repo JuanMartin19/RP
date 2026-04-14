@@ -1,9 +1,10 @@
+// src/app/pages/dashboard/dashboard.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router'; 
 import { PrimeImportsModule } from '../../prime-imports';
 import { GroupsService } from '../../services/groups.service';
-import { AuthService } from '../../services/auth.service'; // <-- IMPORTAMOS EL AUTHSVC
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -16,7 +17,7 @@ export class Dashboard implements OnInit {
   groupId: string | null = null;
   grupoData: any = null;
   cargando = true;
-  canViewTickets = false; // <-- CAMBIADO A VIEW
+  canViewTickets = false;
 
   items = [
     { label: 'Resumen', icon: 'pi pi-home', routerLink: 'resumen' },
@@ -29,21 +30,26 @@ export class Dashboard implements OnInit {
     private route: ActivatedRoute,
     private router: Router, 
     private groupsSvc: GroupsService,
-    private authSvc: AuthService // <-- INYECTADO
+    private authSvc: AuthService
   ) {}
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
       this.groupId = params.get('id');
       if (this.groupId) {
-        this.verificarPermisos(); // Usamos la nueva función
+        this.verificarPermisosEstrictos(); 
+        this.authSvc.refreshToken().subscribe({
+          next: () => {
+            this.verificarPermisosEstrictos(); 
+          }
+        });
         this.cargarInfoGrupo();
       }
     });
   }
 
-  // NUEVA FUNCIÓN: Lee directo del token para evitar errores
-  verificarPermisos() {
+  // LECTURA 100% ESTRICTA: Sin comodines.
+  verificarPermisosEstrictos() {
     const token = this.authSvc.getToken();
     if (!token) return;
     
@@ -51,11 +57,8 @@ export class Dashboard implements OnInit {
     const globales = payload.global || [];
     const delGrupo = (payload.grupos && payload.grupos[this.groupId!]) ? payload.grupos[this.groupId!] : [];
 
-    // Verificamos si tiene el permiso específico o el comodín (manage)
-    this.canViewTickets = globales.includes('ticket:manage') || 
-                          delGrupo.includes('ticket:manage') || 
-                          globales.includes('ticket:view') || 
-                          delGrupo.includes('ticket:view');
+    // Solo ves el botón si tienes EXPRESAMENTE el ticket:view
+    this.canViewTickets = globales.includes('ticket:view') || delGrupo.includes('ticket:view');
   }
 
   cargarInfoGrupo() {
