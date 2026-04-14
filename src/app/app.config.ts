@@ -9,11 +9,15 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from '../interceptors/auth.interceptor';
 import { errorInterceptor } from '../interceptors/error.interceptor'; 
 
+// FALTABA ESTA IMPORTACIÓN:
+import { MessageService } from 'primeng/api'; 
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])),
     provideAnimationsAsync(),
     providePrimeNG({ theme: { preset: Lara } }),
+    MessageService
   ],
 };
