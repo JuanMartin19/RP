@@ -1,10 +1,9 @@
-// src/app/pages/dashboard/dashboard.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, ActivatedRoute, Router } from '@angular/router'; // Añadimos Router
+import { RouterModule, ActivatedRoute, Router } from '@angular/router'; 
 import { PrimeImportsModule } from '../../prime-imports';
 import { GroupsService } from '../../services/groups.service';
-import { PermissionsService } from '../../services/permissions.service';
+import { AuthService } from '../../services/auth.service'; // <-- IMPORTAMOS EL AUTHSVC
 
 @Component({
   selector: 'app-dashboard',
@@ -17,7 +16,7 @@ export class Dashboard implements OnInit {
   groupId: string | null = null;
   grupoData: any = null;
   cargando = true;
-  canAddTicket = false;
+  canViewTickets = false; // <-- CAMBIADO A VIEW
 
   items = [
     { label: 'Resumen', icon: 'pi pi-home', routerLink: 'resumen' },
@@ -28,20 +27,35 @@ export class Dashboard implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router, // Inyectamos el Router
+    private router: Router, 
     private groupsSvc: GroupsService,
-    private permsSvc: PermissionsService
+    private authSvc: AuthService // <-- INYECTADO
   ) {}
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
       this.groupId = params.get('id');
       if (this.groupId) {
-        this.permsSvc.refreshPermissionsForGroup(this.groupId);
-        this.canAddTicket = this.permsSvc.hasPermission('ticket:add');
+        this.verificarPermisos(); // Usamos la nueva función
         this.cargarInfoGrupo();
       }
     });
+  }
+
+  // NUEVA FUNCIÓN: Lee directo del token para evitar errores
+  verificarPermisos() {
+    const token = this.authSvc.getToken();
+    if (!token) return;
+    
+    const payload = this.authSvc.extraerPermisosDelToken(token);
+    const globales = payload.global || [];
+    const delGrupo = (payload.grupos && payload.grupos[this.groupId!]) ? payload.grupos[this.groupId!] : [];
+
+    // Verificamos si tiene el permiso específico o el comodín (manage)
+    this.canViewTickets = globales.includes('ticket:manage') || 
+                          delGrupo.includes('ticket:manage') || 
+                          globales.includes('ticket:view') || 
+                          delGrupo.includes('ticket:view');
   }
 
   cargarInfoGrupo() {
@@ -55,10 +69,8 @@ export class Dashboard implements OnInit {
     });
   }
 
-  // Ahora esta función te manda al link directo
   quickTicket() {
     if (this.groupId) {
-      // Navega a dashboard/:id/ticket
       this.router.navigate(['/dashboard', this.groupId, 'ticket']);
     }
   }

@@ -2,7 +2,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router'; // <-- AGREGADO Router
 import { PrimeImportsModule } from '../../../prime-imports';
 import { PermissionsService } from '../../../services/permissions.service';
 import { GroupsService } from '../../../services/groups.service';
@@ -53,6 +53,7 @@ export class Gestion implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router, // <-- AGREGADO AL CONSTRUCTOR
     private permsSvc: PermissionsService,
     private groupsSvc: GroupsService,
     private usuariosSvc: UsuariosService,
@@ -131,6 +132,7 @@ export class Gestion implements OnInit {
 
   eliminarMiembro(miembro: any) {
     if (!this.canDeleteMember || miembro.rol === 'Admin') return;
+    
     this.confirmSvc.confirm({
       message: `¿Remover a ${miembro.nombre}?`,
       header: 'Confirmar',
@@ -140,8 +142,24 @@ export class Gestion implements OnInit {
       accept: () => {
         this.groupsSvc.removeMember(this.groupId!, miembro.id).subscribe({
           next: () => {
-            this.miembros = this.miembros.filter(m => m.id !== miembro.id);
-            this.messageSvc.add({ severity: 'success', summary: 'Éxito', detail: 'Removido.' });
+            // ==========================================
+            // LÓGICA DE AUTO-KICK
+            // ==========================================
+            const miUsuario = this.authSvc.getUser();
+            const currentUserId = miUsuario ? Number(miUsuario.id || miUsuario.sub) : 0;
+
+            // Si el ID del usuario que acabo de borrar es el mío...
+            if (currentUserId === miembro.id) {
+              this.messageSvc.add({ severity: 'info', summary: 'Aviso', detail: 'Te has eliminado a ti mismo del grupo.' });
+              // Redirigimos al home inmediatamente
+              setTimeout(() => {
+                this.router.navigate(['/home']);
+              }, 500); 
+            } else {
+              // Si borré a otra persona, el flujo normal
+              this.miembros = this.miembros.filter(m => m.id !== miembro.id);
+              this.messageSvc.add({ severity: 'success', summary: 'Éxito', detail: 'Removido.' });
+            }
           }
         });
       }

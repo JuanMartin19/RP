@@ -1,4 +1,3 @@
-// src/app/pages/ticket/ticket.ts
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -6,7 +5,6 @@ import { ActivatedRoute } from '@angular/router';
 import { PrimeImportsModule } from '../../prime-imports';
 import { TicketService } from '../../services/ticket.service';
 import { AuthService } from '../../services/auth.service';
-import { PermissionsService } from '../../services/permissions.service';
 import { MessageService } from 'primeng/api';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
@@ -48,7 +46,6 @@ export class Ticket implements OnInit {
     private route: ActivatedRoute,
     private ticketSvc: TicketService,
     private authSvc: AuthService,
-    private permsSvc: PermissionsService,
     private messageSvc: MessageService,
     private http: HttpClient
   ) {}
@@ -57,7 +54,7 @@ export class Ticket implements OnInit {
     this.groupId = this.route.parent?.snapshot.paramMap.get('id') || null;
 
     if (this.groupId) {
-      this.validarPermisos();
+      this.validarPermisosAvanzado(); // <-- LLAMAMOS A LA NUEVA FUNCIÓN
       
       if (this.canView) {
         this.cargarTicketsDelGrupo();
@@ -68,11 +65,27 @@ export class Ticket implements OnInit {
     }
   }
 
-  validarPermisos() {
-    this.canView = this.permsSvc.hasPermission('ticket:view');
-    this.canAdd = this.permsSvc.hasPermission('ticket:add');
-    this.canEdit = this.permsSvc.hasPermission('ticket:edit');
-    this.canDelete = this.permsSvc.hasPermission('ticket:delete');
+  // NUEVA FUNCIÓN: LECTURA DIRECTA DEL TOKEN PARA SEGURIDAD MILITAR
+  validarPermisosAvanzado() {
+    const token = this.authSvc.getToken();
+    if (!token) return;
+    
+    const payload = this.authSvc.extraerPermisosDelToken(token);
+    const globales = payload.global || [];
+    const delGrupo = (payload.grupos && payload.grupos[this.groupId!]) ? payload.grupos[this.groupId!] : [];
+
+    // Helper para no repetir código: Revisa si tiene "ticket:manage" (admin total) o el permiso específico
+    const tienePermiso = (permiso: string) => {
+      return globales.includes('ticket:manage') || 
+             delGrupo.includes('ticket:manage') || 
+             globales.includes(permiso) || 
+             delGrupo.includes(permiso);
+    };
+
+    this.canView = tienePermiso('ticket:view');
+    this.canAdd = tienePermiso('ticket:add');
+    this.canEdit = tienePermiso('ticket:edit');
+    this.canDelete = tienePermiso('ticket:delete');
   }
 
   cargarTicketsDelGrupo() {
@@ -103,14 +116,12 @@ export class Ticket implements OnInit {
 
   saveTicket() {
     if (this.ticketForm.invalid) {
-      this.messageSvc.add({ severity: 'warn', summary: 'Atención', detail: 'Por favor completa los campos obligatorios (Título).' });
+      this.messageSvc.add({ severity: 'warn', summary: 'Atención', detail: 'Completa los campos obligatorios.' });
       return;
     }
-    
     if (!this.groupId) return;
 
     const data = this.ticketForm.getRawValue();
-
     let fechaAEnviar = null;
     if (data.fecha_limite) {
       fechaAEnviar = new Date(data.fecha_limite).toISOString();
@@ -141,7 +152,7 @@ export class Ticket implements OnInit {
       if (!this.canAdd) return;
       this.ticketSvc.createTicket(payload).subscribe({
         next: () => {
-          this.messageSvc.add({ severity: 'success', summary: 'Éxito', detail: 'Ticket creado correctamente' });
+          this.messageSvc.add({ severity: 'success', summary: 'Éxito', detail: 'Ticket creado' });
           this.cargarTicketsDelGrupo();
           this.ticketDialog = false;
         },
@@ -174,7 +185,7 @@ export class Ticket implements OnInit {
     this.ticketSvc.deleteTicket(id, this.groupId!).subscribe({
       next: () => {
         this.tickets = this.tickets.filter(t => t.id !== id);
-        this.messageSvc.add({ severity: 'success', summary: 'Eliminado', detail: 'Ticket borrado exitosamente' });
+        this.messageSvc.add({ severity: 'success', summary: 'Eliminado', detail: 'Ticket borrado' });
       },
       error: (err) => {
         this.messageSvc.add({ severity: 'error', summary: 'Error', detail: err.error?.data?.message || 'No se pudo eliminar' });
