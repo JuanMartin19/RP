@@ -1,7 +1,7 @@
 {
   "name": "rp",
   "version": "0.0.0",
-  "author": "emmarher",
+  "author": "",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

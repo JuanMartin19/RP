@@ -32,6 +32,8 @@
           <th>Título</th>
           <th>Estado</th>
           <th>Prioridad</th>
+          <th>Asignado a</th>
+          <th>Vence</th>
           <th>Creado por</th>
           <th style="width:140px" *ngIf="canEdit || canDelete">Acciones</th>
         </tr>
@@ -50,6 +52,16 @@
           <td>
             <span class="p-column-title">Prioridad</span>
             <p-tag [value]="ticket.prioridad" [severity]="getPrioridadSeverity(ticket.prioridad)"></p-tag>
+          </td>
+          <td class="text-surface-300">
+            <span class="p-column-title">Asignado a</span>
+            <i class="pi pi-user mr-1 text-sm text-blue-400" *ngIf="ticket.asignado"></i>
+            {{ticket.asignado?.nombre_completo || 'Sin asignar'}}
+          </td>
+          <td class="text-surface-300">
+            <span class="p-column-title">Vence</span>
+            <i class="pi pi-calendar mr-1 text-sm text-yellow-400" *ngIf="ticket.fecha_limite"></i>
+            {{ ticket.fecha_limite ? (ticket.fecha_limite | date:'dd/MM/yyyy') : 'Sin fecha' }}
           </td>
           <td class="text-surface-400">
             <span class="p-column-title">Autor</span>
@@ -74,7 +86,7 @@
 
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td [attr.colspan]="canEdit || canDelete ? 5 : 4" class="text-center p-6">
+          <td [attr.colspan]="canEdit || canDelete ? 7 : 6" class="text-center p-6">
             <i class="pi pi-inbox text-4xl text-surface-500 mb-3 block"></i>
             <span class="text-surface-500">No hay tickets registrados en este grupo.</span>
           </td>
@@ -118,9 +130,37 @@
       <textarea pInputTextarea rows="3" formControlName="descripcion" class="w-full custom-input" placeholder="Detalles técnicos de la falla..."></textarea>
     </div>
 
+    <div class="flex gap-3">
+      <div class="field-group flex-1">
+        <label class="font-semibold block mb-2 text-sm text-surface-300">Prioridad</label>
+        <p-select [options]="['Alta','Media','Baja']" formControlName="prioridad" appendTo="body" styleClass="w-full custom-input"></p-select>
+      </div>
+
+      <div class="field-group flex-1">
+        <label class="font-semibold block mb-2 text-sm text-surface-300">Fecha Límite</label>
+        <p-datepicker 
+          formControlName="fecha_limite" 
+          [showIcon]="true" 
+          placeholder="Seleccionar fecha" 
+          appendTo="body" 
+          dateFormat="dd/mm/yy" 
+          styleClass="w-full custom-input">
+        </p-datepicker>
+      </div>
+    </div>
+
     <div class="field-group">
-      <label class="font-semibold block mb-2 text-sm text-surface-300">Prioridad</label>
-      <p-select [options]="['Alta','Media','Baja']" formControlName="prioridad" appendTo="body" styleClass="w-full custom-input"></p-select>
+      <label class="font-semibold block mb-2 text-sm text-surface-300">Asignar a (Miembro del equipo)</label>
+      <p-select 
+        [options]="miembros" 
+        formControlName="asignado_id" 
+        optionLabel="nombre_completo" 
+        optionValue="id" 
+        placeholder="Seleccionar usuario..." 
+        [showClear]="true" 
+        appendTo="body" 
+        styleClass="w-full custom-input">
+      </p-select>
     </div>
 
     <div class="field-group">

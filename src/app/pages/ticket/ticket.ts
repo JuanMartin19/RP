@@ -6,8 +6,10 @@ import { ActivatedRoute } from '@angular/router';
 import { PrimeImportsModule } from '../../prime-imports';
 import { TicketService } from '../../services/ticket.service';
 import { AuthService } from '../../services/auth.service';
-import { PermissionsService } from '../../services/permissions.service'; // IMPORTANTE
+import { PermissionsService } from '../../services/permissions.service';
 import { MessageService } from 'primeng/api';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-ticket',
@@ -20,6 +22,7 @@ import { MessageService } from 'primeng/api';
 export class Ticket implements OnInit {
 
   tickets: any[] = [];
+  miembros: any[] = [];
   ticketDialog = false;
   editingId: number | null = null;
   cargando = true;
@@ -30,7 +33,9 @@ export class Ticket implements OnInit {
     estado: new FormControl('Pendiente', { nonNullable: true }),
     prioridad: new FormControl('Media', { nonNullable: true }),
     autor: new FormControl({ value: '', disabled: true }, { nonNullable: true }),
-    descripcion: new FormControl('', { nonNullable: true })
+    descripcion: new FormControl('', { nonNullable: true }),
+    asignado_id: new FormControl<number | null>(null),
+    fecha_limite: new FormControl<Date | null>(null)
   });
 
   // VARIABLES DE PERMISOS DINÁMICAS
@@ -43,19 +48,20 @@ export class Ticket implements OnInit {
     private route: ActivatedRoute,
     private ticketSvc: TicketService,
     private authSvc: AuthService,
-    private permsSvc: PermissionsService, // INYECTAR
-    private messageSvc: MessageService
+    private permsSvc: PermissionsService,
+    private messageSvc: MessageService,
+    private http: HttpClient
   ) {}
 
   ngOnInit() {
     this.groupId = this.route.parent?.snapshot.paramMap.get('id') || null;
 
     if (this.groupId) {
-      // 1. CARGAR PERMISOS REALES DEL USUARIO
       this.validarPermisos();
       
       if (this.canView) {
         this.cargarTicketsDelGrupo();
+        this.cargarMiembros();
       } else {
         this.cargando = false;
       }
@@ -63,7 +69,6 @@ export class Ticket implements OnInit {
   }
 
   validarPermisos() {
-    // Usamos el servicio de permisos que ya sabe en qué grupo estamos
     this.canView = this.permsSvc.hasPermission('ticket:view');
     this.canAdd = this.permsSvc.hasPermission('ticket:add');
     this.canEdit = this.permsSvc.hasPermission('ticket:edit');
@@ -83,8 +88,20 @@ export class Ticket implements OnInit {
     });
   }
 
+  cargarMiembros() {
+    const token = this.authSvc.getToken();
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    
+    this.http.get(`${environment.apiUrl}/groups/${this.groupId}`, { headers }).subscribe({
+      next: (res: any) => {
+        if (res.data && res.data.miembros) {
+          this.miembros = res.data.miembros.map((m: any) => m.usuarios);
+        }
+      }
+    });
+  }
+
   saveTicket() {
-    // AÑADIDO: Alerta visual si el formulario es inválido
     if (this.ticketForm.invalid) {
       this.messageSvc.add({ severity: 'warn', summary: 'Atención', detail: 'Por favor completa los campos obligatorios (Título).' });
       return;
@@ -93,12 +110,19 @@ export class Ticket implements OnInit {
     if (!this.groupId) return;
 
     const data = this.ticketForm.getRawValue();
+
+    let fechaAEnviar = null;
+    if (data.fecha_limite) {
+      fechaAEnviar = new Date(data.fecha_limite).toISOString();
+    }
     
-    const payload = {
+    const payload: any = {
       titulo: data.titulo,
       descripcion: data.descripcion,
       prioridad: data.prioridad,
-      grupo_id: Number(this.groupId) 
+      grupo_id: Number(this.groupId),
+      asignado_id: data.asignado_id,
+      fecha_limite: fechaAEnviar
     };
 
     if (this.editingId) {
@@ -136,7 +160,9 @@ export class Ticket implements OnInit {
       estado: ticket.estado,
       prioridad: ticket.prioridad,
       autor: ticket.autor?.nombre_completo || 'Sin autor',
-      descripcion: ticket.descripcion
+      descripcion: ticket.descripcion,
+      asignado_id: ticket.asignado?.id || null,
+      fecha_limite: ticket.fecha_limite ? new Date(ticket.fecha_limite) : null
     });
     this.ticketDialog = true;
   }
@@ -145,7 +171,6 @@ export class Ticket implements OnInit {
     if (!this.canDelete) return;
     if (!confirm('¿Seguro que deseas eliminar este ticket?')) return;
     
-    // CORRECCIÓN: Ahora le pasamos el this.groupId! al servicio
     this.ticketSvc.deleteTicket(id, this.groupId!).subscribe({
       next: () => {
         this.tickets = this.tickets.filter(t => t.id !== id);
@@ -157,7 +182,6 @@ export class Ticket implements OnInit {
     });
   }
 
-  // ... (getSeverities y openNew se mantienen igual)
   getEstadoSeverity(estado: string): any {
     if (estado === 'Pendiente') return 'warn';
     if (estado === 'En Progreso') return 'info';
@@ -176,7 +200,9 @@ export class Ticket implements OnInit {
     this.ticketForm.reset({ 
       estado: 'Pendiente', 
       prioridad: 'Media',
-      autor: user?.nombre_completo || 'Usuario'
+      autor: user?.nombre_completo || 'Usuario',
+      asignado_id: null,
+      fecha_limite: null
     });
     this.editingId = null;
     this.ticketDialog = true;
