@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { catchError } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 import { MessageService } from 'primeng/api';
-import { AuthService } from '../services/auth.service';
+import { AuthService } from '../app/services/auth.service';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
