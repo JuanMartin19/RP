@@ -52,6 +52,7 @@ export class Lista implements OnInit {
 
   canEdit = false;
   canDelete = false;
+  esAdmin = false; // <-- Nueva variable
 
   constructor(
     private route: ActivatedRoute,
@@ -66,14 +67,31 @@ export class Lista implements OnInit {
   ngOnInit() {
     this.usuarioActual = this.authSvc.getUser();
     this.miId = this.usuarioActual?.id || null;
-    this.canEdit = this.permsSvc.hasPermission('ticket:edit');
-    this.canDelete = this.permsSvc.hasPermission('ticket:delete');
     this.groupId = this.route.parent?.snapshot.paramMap.get('id') || null;
 
     if (this.groupId) {
+      this.validarPermisosEstrictos(); // <-- Validamos directo del token
       this.cargarUsuariosGrupo();
       this.cargarTicketsReal();
     }
+  }
+
+  // LECTURA ESTRICTA DEL TOKEN
+  validarPermisosEstrictos() {
+    const token = this.authSvc.getToken();
+    if (!token) return;
+    const payload = this.authSvc.extraerPermisosDelToken(token);
+    const globales = payload.global || [];
+    const delGrupo = (payload.grupos && payload.grupos[this.groupId!]) ? payload.grupos[this.groupId!] : [];
+
+    const tienePermisoExacto = (permiso: string) => {
+      return globales.includes(permiso) || delGrupo.includes(permiso);
+    };
+
+    this.canEdit = tienePermisoExacto('ticket:edit');
+    this.canDelete = tienePermisoExacto('ticket:delete');
+    // Evaluamos si es un administrador con poderes plenos
+    this.esAdmin = tienePermisoExacto('ticket:manage') || tienePermisoExacto('group:manage');
   }
 
   cargarUsuariosGrupo() {
@@ -129,8 +147,9 @@ export class Lista implements OnInit {
     }
   }
 
+  // ✅ CORRECCIÓN: Ahora los administradores también pueden reasignar
   puedeAsignar(ticket: any): boolean {
-    return this.miId == this.grupoCreadorId || this.miId == ticket.autor_id;
+    return this.esAdmin || this.miId == this.grupoCreadorId || this.miId == ticket.autor_id;
   }
 
   editarTicket(ticket: any) {
@@ -159,7 +178,6 @@ export class Lista implements OnInit {
     
     if (cambioEstado) {
       peticiones.push(new Promise((res, rej) => {
-        // CORRECCIÓN: Agregamos this.groupId
         this.ticketSvc.changeStatus(this.ticketEditando.id, this.ticketEditando.estado, this.groupId!)
           .subscribe({ next: () => res(), error: e => rej(e) });
       }));
@@ -167,13 +185,12 @@ export class Lista implements OnInit {
     
     if (cambioDatos) {
       peticiones.push(new Promise((res, rej) => {
-        // CORRECCIÓN AQUÍ: Agregamos grupo_id al payload
         this.ticketSvc.updateTicket(this.ticketEditando.id, {
           titulo: this.ticketEditando.titulo,
           descripcion: this.ticketEditando.descripcion,
           prioridad: this.ticketEditando.prioridad,
           asignado_id: this.ticketEditando.asignado_id,
-          grupo_id: Number(this.groupId) // <--- ESTO ES LO QUE EL GATEWAY NECESITA
+          grupo_id: Number(this.groupId)
         }).subscribe({ next: () => res(), error: e => rej(e) });
       }));
     }
@@ -208,7 +225,6 @@ export class Lista implements OnInit {
     this.confirmSvc.confirm({
       message: `¿Eliminar "${ticket.titulo}"?`,
       accept: () => {
-        // CORRECCIÓN: Le pasamos el this.groupId! al servicio
         this.ticketSvc.deleteTicket(ticket.id, this.groupId!).subscribe({
           next: () => {
             this.tickets = this.tickets.filter(t => t.id !== ticket.id);
